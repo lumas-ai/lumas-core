@@ -6,7 +6,6 @@ const protoLoader = require('@grpc/proto-loader');
 const util = require('util')
 const logConfig = require('./logger.js').config;
 const Camera = require('./camera');
-const { startFFSERVER, addStream } = require('./ffserver');
 const { Config } = require('./config.js');
 const { Event, saveImage} = require('./events.js');
 
@@ -136,8 +135,6 @@ function loadCameras() {
 
 function run(config) {
   let globalConfig = Object.assign({}, config.global);
-
-  startFFSERVER();
 
   if (config.cameras != null) {
     loadCameras();
