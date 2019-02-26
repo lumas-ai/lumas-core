@@ -6,6 +6,7 @@ import "google/protobuf/struct.proto";
 
 service Camera {
   rpc StreamRTP (RTPConfig) returns (stream StreamInfo) {};
+  rpc StopRTPStream (RTPConfig) returns (Result) {};
   rpc snapshot  (CameraConfig) returns (Image) {};
 }
 

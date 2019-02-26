@@ -20,17 +20,3 @@ for dir in "." "player" "processor" "provider"; do
     protoc $include $filename --python_out=/protos/python
   done
 done
-
-# Build the core protos
-#for file in /protos/*.proto; do
-#  filename=$(basename -- "$file")
-#  include="-I /protos -I /google-protos/src"
-#
-#  # Golang
-#  mkdir -p /protos/golang/$dir
-#  protoc $include $filename --go_out=plugins=grpc:/protos/golang
-#  
-#  # Python
-#  mkdir -p /protos/python
-#  protoc $include $filename --python_out=/protos/python
-#done
