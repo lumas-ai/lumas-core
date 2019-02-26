@@ -120,6 +120,7 @@ homekit/persist
 
 # Development docker-compose file
 docker-compose.dev.yml
+docker-compose.yml
 
 logs
 
