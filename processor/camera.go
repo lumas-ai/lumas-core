@@ -63,7 +63,6 @@ func (s *Camera) providerClient() (api.CameraClient, error) {
 
   opts = append(opts, grpc.WithInsecure())
   conn, err := grpc.Dial(s.providerAddress, opts...)
-  log.Printf("Streaming from camera provider at %s", s.providerAddress)
   if err != nil {
     return nil, err
   }
@@ -249,6 +248,26 @@ func (s *Camera) processAudio(sdp string) error {
   if err != nil {
     return err
   }
+
+  return nil
+}
+
+func (s *Camera) StopFeed() error {
+  provider, err := s.providerClient()
+  if err != nil {
+    s.Log(err.Error())
+    return err
+  }
+
+  c := api.CameraConfig{
+    Config: s.providerConfig,
+  }
+
+  rtpConfig := api.RTPConfig{
+    CameraConfig: &c,
+  }
+
+  provider.StopRTPStream(context.Background(), &rtpConfig)
 
   return nil
 }
