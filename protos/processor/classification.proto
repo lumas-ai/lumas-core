@@ -1,20 +1,32 @@
 syntax = "proto3";
 
-package classification;
+package processor;
 
 // The image classification service
 service ImageClassification {
   rpc classify (ImageToBeClassified) returns (Classification) {}
 }
 
+service AudioClassification {
+  rpc classify (AudioToBeClassified) returns (Classification) {}
+}
+
 message Image {
   string base64Image = 1;
+}
+
+message FocusArea {
+  int32 x = 1;
+  int32 y = 2;
+  int32 height = 3;
+  int32 width = 4;
 }
 
 message ImageToBeClassified {
   Image image = 1;
   bool outlineObjects = 2;
   repeated string classesToOutline = 3;
+  repeated FocusArea focusAreas = 4;
 }
 
 message Point {
@@ -39,7 +51,19 @@ message ClassifiedObject {
   string objectClass = 4;
 }
 
+message ClassifiedSounds {
+  float score = 1;
+  int32 startPresentationTimestamp = 2;
+  int32 stopPresentationTimestamp = 3;
+  string class = 4;
+}
+
 message Classification {
-  repeated ClassifiedObject objects = 1;
-  Image annotatedImage = 2;
+  repeated ClassifiedSounds sounds = 1;
+  repeated ClassifiedObject objects = 2;
+}
+
+message AudioToBeClassified {
+  bytes audio = 1;
+  string codec = 2;
 }

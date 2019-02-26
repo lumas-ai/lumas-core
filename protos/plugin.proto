@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package lumas;
+
+import "google/protobuf/struct.proto";
+
+service Register {
+  rpc register (PluginRegistration) returns (RegisterResult);
+}
+
+message PluginService {
+  string type = 1;
+  google.protobuf.Struct config = 2;
+}
+
+message PluginRegistration {
+  string name = 1;
+  repeated PluginService pluginServices = 2;
+}
+
+message RegisterResult {
+  bool successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package lumas;
+
+import "google/protobuf/struct.proto";
+
+service Camera {
+  rpc addCamera (CameraConfig) returns (Result);
+  rpc processFeed (CameraID) returns (Result);
+}
+
+message Result {
+  bool successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}
+
+message CameraID {
+  int64 id = 1;
+}
+
+message CameraConfig {
+  int64  id = 1;
+  string name = 2;
+  string provider = 3;
+  string providerAddress = 4;
+  google.protobuf.Struct providerConfig = 5;
+}

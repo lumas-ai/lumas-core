@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package provider;
+
+import "google/protobuf/struct.proto";
+
+service Camera {
+  rpc StreamRTP (RTPConfig) returns (stream StreamInfo) {};
+  rpc snapshot  (CameraConfig) returns (Image) {};
+}
+
+message RTPConfig {
+  string rtpAddress = 1;
+  int32  audioRTPPort = 2;
+  int32  videoRTPPort = 3;
+  CameraConfig cameraConfig = 4;
+}
+
+message StreamInfo {
+  SDP   sdp = 1;
+  int64 sentFrames = 2;
+  int64 droppedFrames = 3;
+}
+
+message SDP {
+  string sdp = 1;
+  string audio = 2;
+  string video = 3;
+}
+
+message Image {
+  string base64Image = 1;
+}
+
+message VideoPacket {
+  bytes data = 1;
+  int32 size = 2;
+}
+
+message CameraConfig {
+  google.protobuf.Struct config = 1;
+}
+
+message Result {
+  bool successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}

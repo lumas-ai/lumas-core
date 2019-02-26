@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package player;
+
+service Stream {
+  rpc stream (Camera) returns (stream VideoPacket) {}
+  rpc playback (Video) returns (stream VideoPacket) {}
+}
+
+message Camera {
+  int32 id = 1;
+}
+
+message VideoPacket {
+  bytes packet = 1;
+  string codec = 2;
+}
+
+message Video {
+  int32 startPresentationTimeStamp = 1;
+}
