@@ -97,6 +97,7 @@ ENV/
 
 # OS X files
 .DS_Store
+._.DS_Store
 
 # Tensorflow Models
 faster_rcnn_inception_resnet_v2_atrous_coco_11_06_2017/
