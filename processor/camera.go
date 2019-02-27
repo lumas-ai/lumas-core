@@ -72,23 +72,29 @@ func (s *Camera) providerClient() (api.CameraClient, error) {
   return client, nil
 }
 
-func findFreePort() (int32, error) {
-  //Find an open UDP port
-  for port := 9000; port < 10000; port++ {
-    addr := net.UDPAddr{
-      Port: port,
-      IP:   net.ParseIP("172.17.0.2"),
-    }
-    lp , err := net.ListenUDP("udp", &addr)
-    defer lp.Close()
-    if err != nil {
-      continue
-    }
+func findFreePorts(num int) ([]int32, error) {
+  ports := make([]int32, num)
 
-    return int32(port), nil
+  //Find an open UDP port
+  for i := 0; i < num; i++ {
+    for port := 9000; port < 10000; port++ {
+      addr := net.UDPAddr{
+        Port: port,
+        IP:   net.ParseIP("172.17.0.2"),
+      }
+      lp , err := net.ListenUDP("udp", &addr)
+      if err != nil {
+        continue
+      }
+      defer lp.Close()
+
+      ports[i] = int32(port)
+      break
+    }
   }
 
-  return 0, errors.New("Could not find available udp port between 9000 and 10000")
+  fmt.Println(ports)
+  return ports, nil
 }
 
 func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
@@ -97,7 +103,7 @@ func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
   //gmf.OpenInput can only take a file name for a SDP file, so
   //we have to save one to disk
   filename := fmt.Sprintf("/tmp/%d.sdp", s.Id)
-  rtpOptions = append([]*Option{ {Key: "protocol_whitelist", Val: "udp,file,rtp,crypto"} })
+  rtpOptions = append([]*Option{ {Key: "protocol_whitelist", Val: "udp,file,rtp_mpegts,rtp,crypto"} })
 
   inputCtx := NewCtx()
   inputCtx.SetOptions(rtpOptions)
@@ -224,11 +230,6 @@ func (s *Camera) processVideo(sdp string) error {
       return err
     }
 
-    if packet.StreamIndex() != videoStream.Index() {
-      //It's an audio packet
-      continue
-    }
-
     ist := assert(inputCtx.GetStream(packet.StreamIndex())).(*Stream)
 
     frame, err := packet.Frames(ist.CodecCtx())
@@ -283,15 +284,13 @@ func (s *Camera) ProcessFeed() error {
     Config: s.providerConfig,
   }
 
-  audioPort, err := findFreePort()
+  ports, err := findFreePorts(2)
   if err != nil {
-    return errors.New("Could not allocate a free UDP port for audio RTP stream")
+    return errors.New("Could not allocate free UDP ports for RTP streams")
   }
 
-  videoPort, err := findFreePort()
-  if err != nil {
-    return errors.New("Could not allocate a UDP port for video RTP stream")
-  }
+  audioPort := ports[0]
+  videoPort := ports[1]
 
   rtpConfig := api.RTPConfig{ RtpAddress: "192.168.2.207",
     AudioRTPPort: audioPort,
