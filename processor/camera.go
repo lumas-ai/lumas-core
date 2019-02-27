@@ -197,11 +197,11 @@ func (s *Camera) processVideo(sdp string) error {
     }
   }()
 
-  //Look for motion in every 5th frame to conserve resources
+  //Look for motion in every 10th frame to conserve resources
   go func() {
     i := 1
     for frame := range frames {
-      if i == 5 {
+      if i == 10 {
         i = 1
         motionFrames <- frame
       } else {
