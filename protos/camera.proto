@@ -5,18 +5,25 @@ package lumas;
 import "google/protobuf/struct.proto";
 
 service Camera {
-  rpc addCamera (CameraConfig) returns (Result);
-  rpc processFeed (CameraID) returns (Result);
+  rpc add     (CameraConfig) returns (Result);
+  rpc list    (ListRequest)  returns (stream CameraConfig);
+  rpc remove  (CameraConfig) returns (Result);
+  rpc process (CameraID)     returns (Result);
+}
+
+//It's unlikely we'll ever want to pass arguments to list
+// but this message is hear just in case
+message ListRequest {
+}
+
+message CameraID {
+  int64 id = 1;
 }
 
 message Result {
   bool successful = 1;
   string errorKind = 2;
   string message = 3;
-}
-
-message CameraID {
-  int64 id = 1;
 }
 
 message CameraConfig {

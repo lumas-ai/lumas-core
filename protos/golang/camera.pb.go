@@ -23,6 +23,78 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+//It's unlikely we'll ever want to pass arguments to list
+// but this message is hear just in case
+type ListRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ListRequest) Reset()         { *m = ListRequest{} }
+func (m *ListRequest) String() string { return proto.CompactTextString(m) }
+func (*ListRequest) ProtoMessage()    {}
+func (*ListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2f444de3b23b55d1, []int{0}
+}
+
+func (m *ListRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListRequest.Unmarshal(m, b)
+}
+func (m *ListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListRequest.Marshal(b, m, deterministic)
+}
+func (m *ListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListRequest.Merge(m, src)
+}
+func (m *ListRequest) XXX_Size() int {
+	return xxx_messageInfo_ListRequest.Size(m)
+}
+func (m *ListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListRequest proto.InternalMessageInfo
+
+type CameraID struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CameraID) Reset()         { *m = CameraID{} }
+func (m *CameraID) String() string { return proto.CompactTextString(m) }
+func (*CameraID) ProtoMessage()    {}
+func (*CameraID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2f444de3b23b55d1, []int{1}
+}
+
+func (m *CameraID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CameraID.Unmarshal(m, b)
+}
+func (m *CameraID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CameraID.Marshal(b, m, deterministic)
+}
+func (m *CameraID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CameraID.Merge(m, src)
+}
+func (m *CameraID) XXX_Size() int {
+	return xxx_messageInfo_CameraID.Size(m)
+}
+func (m *CameraID) XXX_DiscardUnknown() {
+	xxx_messageInfo_CameraID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CameraID proto.InternalMessageInfo
+
+func (m *CameraID) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
 type Result struct {
 	Successful           bool     `protobuf:"varint,1,opt,name=successful,proto3" json:"successful,omitempty"`
 	ErrorKind            string   `protobuf:"bytes,2,opt,name=errorKind,proto3" json:"errorKind,omitempty"`
@@ -36,7 +108,7 @@ func (m *Result) Reset()         { *m = Result{} }
 func (m *Result) String() string { return proto.CompactTextString(m) }
 func (*Result) ProtoMessage()    {}
 func (*Result) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f444de3b23b55d1, []int{0}
+	return fileDescriptor_2f444de3b23b55d1, []int{2}
 }
 
 func (m *Result) XXX_Unmarshal(b []byte) error {
@@ -78,45 +150,6 @@ func (m *Result) GetMessage() string {
 	return ""
 }
 
-type CameraID struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CameraID) Reset()         { *m = CameraID{} }
-func (m *CameraID) String() string { return proto.CompactTextString(m) }
-func (*CameraID) ProtoMessage()    {}
-func (*CameraID) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f444de3b23b55d1, []int{1}
-}
-
-func (m *CameraID) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CameraID.Unmarshal(m, b)
-}
-func (m *CameraID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CameraID.Marshal(b, m, deterministic)
-}
-func (m *CameraID) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CameraID.Merge(m, src)
-}
-func (m *CameraID) XXX_Size() int {
-	return xxx_messageInfo_CameraID.Size(m)
-}
-func (m *CameraID) XXX_DiscardUnknown() {
-	xxx_messageInfo_CameraID.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CameraID proto.InternalMessageInfo
-
-func (m *CameraID) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
 type CameraConfig struct {
 	Id                   int64           `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name                 string          `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -132,7 +165,7 @@ func (m *CameraConfig) Reset()         { *m = CameraConfig{} }
 func (m *CameraConfig) String() string { return proto.CompactTextString(m) }
 func (*CameraConfig) ProtoMessage()    {}
 func (*CameraConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f444de3b23b55d1, []int{2}
+	return fileDescriptor_2f444de3b23b55d1, []int{3}
 }
 
 func (m *CameraConfig) XXX_Unmarshal(b []byte) error {
@@ -189,34 +222,37 @@ func (m *CameraConfig) GetProviderConfig() *_struct.Struct {
 }
 
 func init() {
-	proto.RegisterType((*Result)(nil), "lumas.Result")
+	proto.RegisterType((*ListRequest)(nil), "lumas.ListRequest")
 	proto.RegisterType((*CameraID)(nil), "lumas.CameraID")
+	proto.RegisterType((*Result)(nil), "lumas.Result")
 	proto.RegisterType((*CameraConfig)(nil), "lumas.CameraConfig")
 }
 
 func init() { proto.RegisterFile("camera.proto", fileDescriptor_2f444de3b23b55d1) }
 
 var fileDescriptor_2f444de3b23b55d1 = []byte{
-	// 290 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0xdf, 0x6a, 0xab, 0x40,
-	0x10, 0x87, 0x31, 0xff, 0x4e, 0x32, 0xc9, 0x49, 0x60, 0x7a, 0xd1, 0x45, 0x42, 0x11, 0xaf, 0xbc,
-	0xe9, 0x0a, 0xe9, 0x03, 0x94, 0x92, 0x50, 0x08, 0xbd, 0xb3, 0x2f, 0xd0, 0x8d, 0x3b, 0x5a, 0x41,
-	0x5d, 0xd9, 0x75, 0xfb, 0x6e, 0x7d, 0xbb, 0xd2, 0x55, 0xdb, 0xd4, 0xbb, 0x99, 0x6f, 0x7e, 0x3a,
-	0xb3, 0x1f, 0x6c, 0x52, 0x51, 0x91, 0x16, 0xbc, 0xd1, 0xaa, 0x55, 0x38, 0x2f, 0x6d, 0x25, 0x8c,
-	0xbf, 0xcf, 0x95, 0xca, 0x4b, 0x8a, 0x1d, 0xbc, 0xd8, 0x2c, 0x36, 0xad, 0xb6, 0x69, 0xdb, 0x85,
-	0xc2, 0x37, 0x58, 0x24, 0x64, 0x6c, 0xd9, 0xe2, 0x1d, 0x80, 0xb1, 0x69, 0x4a, 0xc6, 0x64, 0xb6,
-	0x64, 0x5e, 0xe0, 0x45, 0xcb, 0xe4, 0x8a, 0xe0, 0x1e, 0x56, 0xa4, 0xb5, 0xd2, 0x2f, 0x45, 0x2d,
-	0xd9, 0x24, 0xf0, 0xa2, 0x55, 0xf2, 0x0b, 0x90, 0xc1, 0xbf, 0x8a, 0x8c, 0x11, 0x39, 0xb1, 0xa9,
-	0x9b, 0x0d, 0x6d, 0xe8, 0xc3, 0xf2, 0xe8, 0xce, 0x3a, 0x9f, 0x70, 0x0b, 0x93, 0x42, 0xba, 0x7f,
-	0x4f, 0x93, 0x49, 0x21, 0xc3, 0x4f, 0x0f, 0x36, 0xdd, 0xf0, 0xa8, 0xea, 0xac, 0xc8, 0xc7, 0x01,
-	0x44, 0x98, 0xd5, 0xa2, 0xa2, 0x7e, 0x9f, 0xab, 0xd1, 0x87, 0x65, 0xa3, 0xd5, 0x47, 0x21, 0x49,
-	0xf7, 0xbb, 0x7e, 0x7a, 0x8c, 0x60, 0x37, 0xd4, 0x4f, 0x52, 0x6a, 0x32, 0x86, 0xcd, 0x5c, 0x64,
-	0x8c, 0xf1, 0x11, 0xb6, 0x03, 0xea, 0x76, 0xb3, 0x79, 0xe0, 0x45, 0xeb, 0xc3, 0x2d, 0xef, 0x7c,
-	0xf1, 0xc1, 0x17, 0x7f, 0x75, 0xbe, 0x92, 0x51, 0xfc, 0xf0, 0x0e, 0x8b, 0xee, 0x74, 0x8c, 0x61,
-	0x25, 0xa4, 0xec, 0x9b, 0x1b, 0xee, 0xb4, 0xf3, 0xeb, 0x67, 0xf9, 0xff, 0x7b, 0xd8, 0xab, 0xbe,
-	0x87, 0x75, 0xa3, 0xd5, 0xb7, 0xd8, 0x67, 0x22, 0x89, 0xbb, 0x3f, 0x9f, 0x9c, 0x4f, 0xa3, 0xf8,
-	0x65, 0xe1, 0x4e, 0x79, 0xf8, 0x0a, 0x00, 0x00, 0xff, 0xff, 0x3a, 0xee, 0xc8, 0x12, 0xdf, 0x01,
-	0x00, 0x00,
+	// 328 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0x4b, 0x6e, 0xe2, 0x40,
+	0x10, 0x86, 0xd5, 0x3c, 0x0c, 0x14, 0x2f, 0xa9, 0x66, 0x31, 0x96, 0x85, 0x46, 0xc8, 0x2b, 0x23,
+	0x8d, 0xcc, 0x0c, 0x39, 0x40, 0x14, 0xc1, 0x06, 0x25, 0x2b, 0xe7, 0x02, 0x31, 0xee, 0xc2, 0x6a,
+	0xc9, 0xa6, 0x49, 0x3f, 0xb8, 0x5b, 0x56, 0xb9, 0x5a, 0x94, 0xb6, 0x9d, 0x10, 0x2b, 0x8b, 0xec,
+	0xaa, 0xbe, 0xfe, 0xbb, 0x1e, 0x7f, 0xc1, 0x24, 0x4b, 0x4b, 0x52, 0x69, 0x7c, 0x56, 0xd2, 0x48,
+	0xec, 0x17, 0xb6, 0x4c, 0x75, 0xb0, 0xc8, 0xa5, 0xcc, 0x0b, 0x5a, 0x3b, 0x78, 0xb0, 0xc7, 0xb5,
+	0x36, 0xca, 0x66, 0xa6, 0x12, 0x85, 0x53, 0x18, 0x3f, 0x08, 0x6d, 0x12, 0x7a, 0xb6, 0xa4, 0x4d,
+	0x18, 0xc0, 0x70, 0xeb, 0x6a, 0xec, 0x77, 0x38, 0x83, 0x8e, 0xe0, 0x3e, 0x5b, 0xb2, 0xa8, 0x9b,
+	0x74, 0x04, 0x0f, 0x9f, 0xc0, 0x4b, 0x48, 0xdb, 0xc2, 0xe0, 0x1f, 0x00, 0x6d, 0xb3, 0x8c, 0xb4,
+	0x3e, 0xda, 0xc2, 0x29, 0x86, 0xc9, 0x15, 0xc1, 0x05, 0x8c, 0x48, 0x29, 0xa9, 0xee, 0xc5, 0x89,
+	0xfb, 0x9d, 0x25, 0x8b, 0x46, 0xc9, 0x27, 0x40, 0x1f, 0x06, 0x25, 0x69, 0x9d, 0xe6, 0xe4, 0x77,
+	0xdd, 0x5b, 0x93, 0x86, 0x2f, 0x0c, 0x26, 0x55, 0xfb, 0xad, 0x3c, 0x1d, 0x45, 0xde, 0x1e, 0x01,
+	0x11, 0x7a, 0xa7, 0xb4, 0xa4, 0xba, 0xa6, 0x8b, 0x31, 0x80, 0xe1, 0x59, 0xc9, 0x8b, 0xe0, 0xa4,
+	0xea, 0x7a, 0x1f, 0x39, 0x46, 0x30, 0x6f, 0xe2, 0x3b, 0xce, 0x15, 0x69, 0xed, 0xf7, 0x9c, 0xa4,
+	0x8d, 0xf1, 0x16, 0x66, 0x0d, 0xaa, 0x7a, 0xfb, 0xfd, 0x25, 0x8b, 0xc6, 0x9b, 0xdf, 0x71, 0x65,
+	0x5f, 0xdc, 0xd8, 0x17, 0x3f, 0x3a, 0xfb, 0x92, 0x96, 0x7c, 0xf3, 0xca, 0xc0, 0xab, 0x66, 0xc7,
+	0x15, 0x74, 0x53, 0xce, 0xf1, 0x57, 0xec, 0x0e, 0x10, 0x5f, 0x6f, 0x14, 0x4c, 0x6b, 0x58, 0x3b,
+	0xf9, 0x1f, 0x7a, 0x85, 0xd0, 0x06, 0xb1, 0xc6, 0x57, 0xb7, 0x08, 0xbe, 0xfb, 0xff, 0x8f, 0xe1,
+	0x5f, 0xf0, 0x14, 0x95, 0xf2, 0x42, 0x3f, 0x6a, 0xb0, 0x82, 0xc1, 0x59, 0xc9, 0xf7, 0xc3, 0xe0,
+	0xfc, 0x8b, 0x7c, 0xbf, 0x6b, 0x49, 0x0f, 0x9e, 0x5b, 0xf1, 0xe6, 0x2d, 0x00, 0x00, 0xff, 0xff,
+	0xad, 0x82, 0x71, 0xd0, 0x46, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -231,8 +267,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CameraClient interface {
-	AddCamera(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error)
-	ProcessFeed(ctx context.Context, in *CameraID, opts ...grpc.CallOption) (*Result, error)
+	Add(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error)
+	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (Camera_ListClient, error)
+	Remove(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error)
+	Process(ctx context.Context, in *CameraID, opts ...grpc.CallOption) (*Result, error)
 }
 
 type cameraClient struct {
@@ -243,18 +281,59 @@ func NewCameraClient(cc *grpc.ClientConn) CameraClient {
 	return &cameraClient{cc}
 }
 
-func (c *cameraClient) AddCamera(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error) {
+func (c *cameraClient) Add(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error) {
 	out := new(Result)
-	err := c.cc.Invoke(ctx, "/lumas.Camera/addCamera", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/lumas.Camera/add", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cameraClient) ProcessFeed(ctx context.Context, in *CameraID, opts ...grpc.CallOption) (*Result, error) {
+func (c *cameraClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (Camera_ListClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Camera_serviceDesc.Streams[0], "/lumas.Camera/list", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &cameraListClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Camera_ListClient interface {
+	Recv() (*CameraConfig, error)
+	grpc.ClientStream
+}
+
+type cameraListClient struct {
+	grpc.ClientStream
+}
+
+func (x *cameraListClient) Recv() (*CameraConfig, error) {
+	m := new(CameraConfig)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *cameraClient) Remove(ctx context.Context, in *CameraConfig, opts ...grpc.CallOption) (*Result, error) {
 	out := new(Result)
-	err := c.cc.Invoke(ctx, "/lumas.Camera/processFeed", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/lumas.Camera/remove", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cameraClient) Process(ctx context.Context, in *CameraID, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, "/lumas.Camera/process", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,46 +342,87 @@ func (c *cameraClient) ProcessFeed(ctx context.Context, in *CameraID, opts ...gr
 
 // CameraServer is the server API for Camera service.
 type CameraServer interface {
-	AddCamera(context.Context, *CameraConfig) (*Result, error)
-	ProcessFeed(context.Context, *CameraID) (*Result, error)
+	Add(context.Context, *CameraConfig) (*Result, error)
+	List(*ListRequest, Camera_ListServer) error
+	Remove(context.Context, *CameraConfig) (*Result, error)
+	Process(context.Context, *CameraID) (*Result, error)
 }
 
 func RegisterCameraServer(s *grpc.Server, srv CameraServer) {
 	s.RegisterService(&_Camera_serviceDesc, srv)
 }
 
-func _Camera_AddCamera_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Camera_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CameraConfig)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CameraServer).AddCamera(ctx, in)
+		return srv.(CameraServer).Add(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/lumas.Camera/AddCamera",
+		FullMethod: "/lumas.Camera/Add",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CameraServer).AddCamera(ctx, req.(*CameraConfig))
+		return srv.(CameraServer).Add(ctx, req.(*CameraConfig))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Camera_ProcessFeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Camera_List_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ListRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CameraServer).List(m, &cameraListServer{stream})
+}
+
+type Camera_ListServer interface {
+	Send(*CameraConfig) error
+	grpc.ServerStream
+}
+
+type cameraListServer struct {
+	grpc.ServerStream
+}
+
+func (x *cameraListServer) Send(m *CameraConfig) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Camera_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CameraConfig)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CameraServer).Remove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lumas.Camera/Remove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CameraServer).Remove(ctx, req.(*CameraConfig))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Camera_Process_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CameraID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CameraServer).ProcessFeed(ctx, in)
+		return srv.(CameraServer).Process(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/lumas.Camera/ProcessFeed",
+		FullMethod: "/lumas.Camera/Process",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CameraServer).ProcessFeed(ctx, req.(*CameraID))
+		return srv.(CameraServer).Process(ctx, req.(*CameraID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -312,14 +432,24 @@ var _Camera_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*CameraServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "addCamera",
-			Handler:    _Camera_AddCamera_Handler,
+			MethodName: "add",
+			Handler:    _Camera_Add_Handler,
 		},
 		{
-			MethodName: "processFeed",
-			Handler:    _Camera_ProcessFeed_Handler,
+			MethodName: "remove",
+			Handler:    _Camera_Remove_Handler,
+		},
+		{
+			MethodName: "process",
+			Handler:    _Camera_Process_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "list",
+			Handler:       _Camera_List_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "camera.proto",
 }
