@@ -20,8 +20,6 @@ import (
   _ "image/jpeg"
 )
 
-var cameras []*Camera
-
 type RTPClient struct {
   sdp string
   port int32
@@ -38,19 +36,8 @@ type Camera struct {
   inputCtx *FmtCtx
 }
 
-func FindCamera(id int64) (*Camera) {
-  for _, cam := range cameras {
-    if cam.Id == id {
-      return cam
-    }
-  }
-
-  return nil
-}
-
 func NewCamera() (*Camera, error) {
   c := &Camera{}
-  cameras = append(cameras, c)
   return c, nil
 }
 
@@ -66,7 +53,6 @@ func (s *Camera) providerClient() (api.CameraClient, error) {
   if err != nil {
     return nil, err
   }
-  //defer conn.Close()
   client := api.NewCameraClient(conn)
 
   return client, nil
