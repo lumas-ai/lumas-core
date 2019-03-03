@@ -51,7 +51,14 @@ func (s *CameraServer) Process(ctx context.Context, cameraID *api.CameraID) (*ap
     return &r, errors.New(m)
   }
 
-  go camera.ProcessFeed()
+  err := camera.ProcessFeed()
+  if err != nil {
+    r := api.Result{Successful: false,
+      ErrorKind: "CouldNotStartFeed",
+      Message: err.Error(),
+    }
+    return &r, err
+  }
 
   r := api.Result{Successful: true}
   return &r, nil
