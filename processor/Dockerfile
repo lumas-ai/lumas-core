@@ -100,11 +100,11 @@ COPY --from=ffmpeg-build /opt/ffmpeg /opt/ffmpeg
 RUN apk add --update git pkgconfig g++ gcc libc-dev \
     openssl lame libogg libvpx libvorbis libass \
     freetype libtheora opus libwebp x264 x264-libs x265 && \
-    go get github.com/3d0c/gmf && \
-    go get github.com/golang/protobuf/proto && \
-    go get github.com/golang/protobuf/ptypes/struct && \
-    go get google.golang.org/grpc  && \
-    go get github.com/lumas-ai/lumas-core/processor && \
+    go get -u github.com/3d0c/gmf && \
+    go get -u github.com/golang/protobuf/proto && \
+    go get -u github.com/golang/protobuf/ptypes/struct && \
+    go get -u google.golang.org/grpc  && \
+    go get -u github.com/lumas-ai/lumas-core/processor && \
     go get -u -d gocv.io/x/gocv && \
     cd / && go build /go/src/github.com/lumas-ai/lumas-core/processor/cmd/server/processor-server.go
 
