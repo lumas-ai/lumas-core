@@ -79,7 +79,6 @@ func findFreePorts(num int) ([]int32, error) {
     }
   }
 
-  fmt.Println(ports)
   return ports, nil
 }
 
@@ -292,9 +291,9 @@ func (s *Camera) ProcessFeed() error {
   }
   //The first response contains the SDP information
   status, err := stream.Recv()
-  if err == io.EOF {
-    fmt.Println("Stream ended")
-    return nil
+  if err == io.EOF || status == nil {
+    s.Log("Did not receive SDP information from provider")
+    return err
   }
 
   go func() {
@@ -304,21 +303,23 @@ func (s *Camera) ProcessFeed() error {
 
   go func() {
     fmt.Println(fmt.Sprintf("Audio SDP: %s", status.Sdp.Audio))
-    //s.processAudio(status.Sdp.Audio)
+    s.processAudio(status.Sdp.Audio)
   }()
 
   //Listen for the status updates
-  for {
-    status, err := stream.Recv()
-    if err == io.EOF {
-      fmt.Println("Stream ended")
-      break
-    }
+  go func() {
+    for {
+      status, err := stream.Recv()
+      if err == io.EOF {
+        fmt.Println("Stream ended")
+        break
+      }
 
-    s.Log(fmt.Sprintf("Sent Frames: %d", status.SentFrames))
-    s.Log(fmt.Sprintf("Dropped Frames: %d", status.DroppedFrames))
-    time.Sleep(5 * time.Second)
-  }
+      s.Log(fmt.Sprintf("Sent Frames: %d", status.SentFrames))
+      s.Log(fmt.Sprintf("Dropped Frames: %d", status.DroppedFrames))
+      time.Sleep(5 * time.Second)
+    }
+  }()
 
   return nil
 }
