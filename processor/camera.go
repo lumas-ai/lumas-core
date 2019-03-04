@@ -13,6 +13,7 @@ import (
   "errors"
   "image"
   "context"
+  "crypto/md5"
   "google.golang.org/grpc"
   . "github.com/3d0c/gmf"
   _struct "github.com/golang/protobuf/ptypes/struct"
@@ -87,11 +88,9 @@ func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
 
   //gmf.OpenInput can only take a file name for a SDP file, so
   //we have to save one to disk
-  filename := fmt.Sprintf("/tmp/%d.sdp", s.Id)
-  rtpOptions = append([]*Option{ {Key: "protocol_whitelist", Val: "udp,file,rtp_mpegts,rtp,crypto"} })
-
-  inputCtx := NewCtx()
-  inputCtx.SetOptions(rtpOptions)
+  h := md5.New()
+  io.WriteString(h, sdp)
+  filename := fmt.Sprintf("/tmp/%x.sdp", h.Sum(nil))
 
   f, err := os.Create(filename)
   defer f.Close()
@@ -105,6 +104,12 @@ func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
     return nil, err
   }
   w.Flush()
+
+  //Now we're ready to create the RTP client
+  rtpOptions = append([]*Option{ {Key: "protocol_whitelist", Val: "udp,file,rtp_mpegts,rtp,crypto"} })
+
+  inputCtx := NewCtx()
+  inputCtx.SetOptions(rtpOptions)
 
   inputCtx.OpenInput(filename)
   inputCtx.Dump()
@@ -303,7 +308,7 @@ func (s *Camera) ProcessFeed() error {
 
   go func() {
     fmt.Println(fmt.Sprintf("Audio SDP: %s", status.Sdp.Audio))
-    s.processAudio(status.Sdp.Audio)
+    //s.processAudio(status.Sdp.Audio)
   }()
 
   //Listen for the status updates
