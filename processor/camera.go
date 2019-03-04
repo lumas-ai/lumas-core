@@ -21,6 +21,8 @@ import (
   _ "image/jpeg"
 )
 
+var allocatedRTPPorts []int
+
 type RTPClient struct {
   sdp string
   port int32
@@ -40,6 +42,15 @@ type Camera struct {
 func NewCamera() (*Camera, error) {
   c := &Camera{}
   return c, nil
+}
+
+func (r *RTPClient) Close() error {
+  err := unallocatePort(int(r.port))
+  if err != nil {
+    return err
+  }
+
+  return nil
 }
 
 func (s *Camera) providerClient() (api.CameraClient, error) {
@@ -75,10 +86,46 @@ func getLocalIP() string {
     return ""
 }
 
+func allocatePorts(num int) ([]int, error) {
+  var rslice []int
+  port := 9000
+
+  for i := 0; i < num; i++ {
+    for j := 0; j < len(allocatedRTPPorts); j++ {
+      if allocatedRTPPorts[j] == port {
+        port++
+        continue
+      }
+    }
+
+    allocatedRTPPorts = append(allocatedRTPPorts, port)
+    rslice = append(rslice, port)
+    port++
+  }
+
+  fmt.Println(fmt.Sprintf("Allocating Ports: %v", rslice))
+  return rslice, nil
+}
+
+func unallocatePort(port int) error {
+  pslice := allocatedRTPPorts
+
+  for i := 0; i < len(pslice); i++ {
+    if pslice[i] == port {
+      pslice[len(pslice) - 1], pslice[port] = pslice[port], pslice[len(pslice) -1]
+      pslice = pslice[:len(pslice)-1]
+      break
+    }
+  }
+
+  return nil
+}
+
 func findFreePorts(num int) ([]int32, error) {
   ports := make([]int32, num)
   ip := getLocalIP()
 
+  log.Println(fmt.Sprintf("Creating RTP clients on IP %s", ip))
   //Find an open UDP port
   for i := 0; i < num; i++ {
     for port := 9000; port < 10000; port++ {
@@ -88,7 +135,6 @@ func findFreePorts(num int) ([]int32, error) {
       }
       lp , err := net.ListenUDP("udp", &addr)
       if err != nil {
-        fmt.Println("ERR: " + err.Error())
         continue
       }
       defer lp.Close()
@@ -292,7 +338,7 @@ func (s *Camera) ProcessFeed() error {
     Config: s.providerConfig,
   }
 
-  ports, err := findFreePorts(2)
+  ports, err := allocatePorts(2)
   if err != nil {
     return errors.New("Could not allocate free UDP ports for RTP streams")
   }
@@ -301,10 +347,13 @@ func (s *Camera) ProcessFeed() error {
   videoPort := ports[1]
 
   rtpConfig := api.RTPConfig{ RtpAddress: "192.168.2.207",
-    AudioRTPPort: audioPort,
-    VideoRTPPort: videoPort,
+    AudioRTPPort: int32(audioPort),
+    VideoRTPPort: int32(videoPort),
     CameraConfig: &c,
   }
+
+  fmt.Println(fmt.Sprintf("AUDIO PORT: %d", audioPort))
+  fmt.Println(fmt.Sprintf("VIDEO PORT: %d", videoPort))
 
   //Tell the camera provider to start streaming
   stream, err := provider.StreamRTP(context.Background(), &rtpConfig)
@@ -319,22 +368,36 @@ func (s *Camera) ProcessFeed() error {
     return err
   }
 
-  go func() {
-    fmt.Println(fmt.Sprintf("Video SDP: %s", status.Sdp.Video))
-    s.processVideo(status.Sdp.Video)
-  }()
+  if status.Sdp.Video != "" {
+    go func() {
+      s.processVideo(status.Sdp.Video)
+    }()
+  } else {
+    s.Log("Provider did not provide any video streaming information. Skipping processing video")
+  }
 
-  go func() {
-    fmt.Println(fmt.Sprintf("Audio SDP: %s", status.Sdp.Audio))
-    //s.processAudio(status.Sdp.Audio)
-  }()
+  if status.Sdp.Audio != "" {
+    go func() {
+      //s.processAudio(status.Sdp.Audio)
+    }()
+  } else {
+    s.Log("Provider did not provide any audio streaming information. Skipping processing audio")
+  }
 
   //Listen for the status updates
   go func() {
     for {
+      if s.audioRTPClient != nil {
+        defer s.audioRTPClient.Close()
+      }
+
+      if s. videoRTPClient != nil {
+        defer s.videoRTPClient.Close()
+      }
+
       status, err := stream.Recv()
       if err == io.EOF {
-        fmt.Println("Stream ended")
+        s.Log("Stream ended")
         break
       }
 
