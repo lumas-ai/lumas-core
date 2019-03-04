@@ -59,18 +59,36 @@ func (s *Camera) providerClient() (api.CameraClient, error) {
   return client, nil
 }
 
+func getLocalIP() string {
+    addrs, err := net.InterfaceAddrs()
+    if err != nil {
+        return ""
+    }
+    for _, address := range addrs {
+        // check the address type and if it is not a loopback the display it
+        if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+            if ipnet.IP.To4() != nil {
+                return ipnet.IP.String()
+            }
+        }
+    }
+    return ""
+}
+
 func findFreePorts(num int) ([]int32, error) {
   ports := make([]int32, num)
+  ip := getLocalIP()
 
   //Find an open UDP port
   for i := 0; i < num; i++ {
     for port := 9000; port < 10000; port++ {
       addr := net.UDPAddr{
         Port: port,
-        IP:   net.ParseIP("172.17.0.2"),
+        IP:   net.ParseIP(ip),
       }
       lp , err := net.ListenUDP("udp", &addr)
       if err != nil {
+        fmt.Println("ERR: " + err.Error())
         continue
       }
       defer lp.Close()
