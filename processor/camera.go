@@ -282,11 +282,12 @@ func (s *Camera) processVideo(sdp string) error {
     packet, err := inputCtx.GetNextPacket()
     if err == io.EOF {
       return err
+    } else if err != nil {
+      fmt.Println("Could not process packet. Skipping")
+      continue
     }
 
-    ist := assert(inputCtx.GetStream(packet.StreamIndex())).(*Stream)
-
-    frame, err := packet.Frames(ist.CodecCtx())
+    frame, err := packet.Frames(videoStream.CodecCtx())
     if err != nil {
       log.Println("Missed packet at " + string(packet.Pts()) + ". " + err.Error())
       continue
