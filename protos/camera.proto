@@ -7,13 +7,15 @@ import "google/protobuf/struct.proto";
 service Camera {
   rpc add     (CameraConfig) returns (Result);
   rpc list    (ListRequest)  returns (stream CameraConfig);
-  rpc remove  (CameraConfig) returns (Result);
-  rpc process (CameraID)     returns (Result);
+  rpc remove  (CameraID) returns (Result);
+  rpc stop    (CameraID) returns (Result);
+  rpc process (CameraID) returns (Result);
 }
 
 //It's unlikely we'll ever want to pass arguments to list
 // but this message is hear just in case
 message ListRequest {
+  repeated CameraID cameraID = 1;
 }
 
 message CameraID {
