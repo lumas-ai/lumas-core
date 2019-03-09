@@ -3,7 +3,6 @@ package processor
 import (
   "fmt"
   "log"
-  "strconv"
   . "github.com/3d0c/gmf"
 )
 
@@ -19,7 +18,7 @@ func addStreams(inputCtx *FmtCtx, outputCtx *FmtCtx) {
 }
 
 func (s *Camera) WriteFile(packets <-chan *Packet, donePackets chan<- *Packet, inputCtx *FmtCtx) {
-  dstFileName := strconv.FormatInt(s.Id, 10) + ".ts"
+  dstFileName := fmt.Sprintf("/videos/%d.ts", s.Id)
 
   outputCtx := assert(NewOutputCtxWithFormatName(dstFileName, "mpegts")).(*FmtCtx)
   defer outputCtx.Close()
@@ -28,14 +27,15 @@ func (s *Camera) WriteFile(packets <-chan *Packet, donePackets chan<- *Packet, i
   outputCtx.Dump()
 
   if err := outputCtx.WriteHeader(); err != nil {
-    fmt.Println("error")
+    fmt.Println(fmt.Sprintf("Could not write output file for camera: %d", s.Id))
+    fmt.Println(err.Error())
   }
   defer outputCtx.WriteTrailer()
 
   for packet := range packets {
     //Write the packet to a file
     if err := outputCtx.WritePacket(packet); err != nil {
-      fmt.Println("Could not write packet")
+      fmt.Println(fmt.Sprintf("[%d] Could not write packet", s.Id))
     }
 
     donePackets <- packet
