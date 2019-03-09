@@ -67,7 +67,7 @@ func DetectMotion(frames <-chan *Frame, doneFrames chan<- *Frame, results chan<-
     thresh     := gocv.NewMat()
 
     gocv.AbsDiff(prevFrame, curFrame, &frameDelta)
-    gocv.Threshold(frameDelta, &thresh, 10, 255, gocv.ThresholdBinary)
+    gocv.Threshold(frameDelta, &thresh, 50, 255, gocv.ThresholdBinary)
 
     kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(3, 3))
     gocv.Dilate(thresh, &thresh, kernel)
