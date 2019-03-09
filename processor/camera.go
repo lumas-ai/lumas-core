@@ -315,6 +315,14 @@ func (s *Camera) StopFeed() error {
     return err
   }
 
+  //Close the RTP clients
+  if s.videoRTPClient != nil {
+    s.videoRTPClient.Close()
+  }
+  if s.audioRTPClient != nil {
+    s.audioRTPClient.Close()
+  }
+
   c := api.CameraConfig{
     Config: s.providerConfig,
   }
