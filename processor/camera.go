@@ -283,7 +283,7 @@ func (s *Camera) processVideo(sdp string) error {
     if err == io.EOF {
       return err
     } else if err != nil {
-      fmt.Println("Could not process packet. Skipping")
+      fmt.Println("Could not get packet. Skipping")
       continue
     }
 
@@ -352,9 +352,6 @@ func (s *Camera) ProcessFeed() error {
     VideoRTPPort: int32(videoPort),
     CameraConfig: &c,
   }
-
-  fmt.Println(fmt.Sprintf("AUDIO PORT: %d", audioPort))
-  fmt.Println(fmt.Sprintf("VIDEO PORT: %d", videoPort))
 
   //Tell the camera provider to start streaming
   stream, err := provider.StreamRTP(context.Background(), &rtpConfig)
