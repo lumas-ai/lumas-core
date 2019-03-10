@@ -25,9 +25,21 @@ func (s *CameraServer) FindCamera(id int64) (*Camera, int) {
 func (s *CameraServer) Add(ctx context.Context, config *api.CameraConfig) (*api.Result, error) {
   //If a camera with the same ID exists, replace it
   //in case there's new configurations
-  cam, _ := s.FindCamera(config.Id)
+  cam, i := s.FindCamera(config.Id)
   if cam != nil {
-    s.Remove(ctx, config)
+    err := cam.StopFeed()
+    if err != nil {
+      msg := fmt.Sprintf("Could not close camera feed with ID %d", cam.Id)
+      r := &api.Result{
+        Successful: false,
+        ErrorKind: "CameraLeftOpen",
+        Message: msg,
+      }
+
+      return r, errors.New(msg)
+    }
+
+    s.cameras = append(s.cameras[:i], s.cameras[i+1:]...)
   }
 
   camera, err := NewCamera()
@@ -38,6 +50,24 @@ func (s *CameraServer) Add(ctx context.Context, config *api.CameraConfig) (*api.
   s.cameras = append(s.cameras, camera)
 
   camera.SetId(config.Id).SetName(config.Name).SetProvider(config.Provider).SetProviderAddress(config.ProviderAddress).SetProviderConfig(config.ProviderConfig)
+
+  r := api.Result{Successful: true}
+  return &r, nil
+}
+
+func (s *CameraServer) Stop(ctx context.Context, camera *api.CameraID) (*api.Result, error) {
+  cam, _ := s.FindCamera(camera.Id)
+  if cam == nil {
+    msg := fmt.Sprintf("Could not find camera %d", camera.Id)
+    r := api.Result{Successful: false, ErrorKind: "CameraNotFound", Message: msg}
+    return &r, errors.New(msg)
+  }
+
+  err := cam.StopFeed()
+  if err != nil {
+    r := api.Result{Successful: false, ErrorKind: "CameraNotStopped", Message: "Could not stop camera"}
+    return &r, err
+  }
 
   r := api.Result{Successful: true}
   return &r, nil
@@ -80,7 +110,7 @@ func (s *CameraServer) List(req *api.ListRequest, stream api.Camera_ListServer) 
   return nil
 }
 
-func (s *CameraServer) Remove(context context.Context, camera *api.CameraConfig) (*api.Result, error) {
+func (s *CameraServer) Remove(context context.Context, camera *api.CameraID) (*api.Result, error) {
   cam, i := s.FindCamera(camera.Id)
   if cam == nil {
     msg := fmt.Sprintf("Could not find camera with ID %d", camera.Id)
