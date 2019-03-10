@@ -195,6 +195,8 @@ func FmtError(err *api.Result) string {
 
 func (s *Camera) processVideo(sdp string) error {
   var wg sync.WaitGroup
+  var motionWaitGroup sync.WaitGroup
+  var motionResultsWaitGroup sync.WaitGroup
   var err error
 
   s.videoRTPClient, err = s.NewRTPClient(sdp)
@@ -256,15 +258,15 @@ func (s *Camera) processVideo(sdp string) error {
     s.WriteFile(packets, donePackets, inputCtx)
   }()
 
-  wg.Add(1)
+  motionWaitGroup.Add(1)
   go func() {
-    defer wg.Done()
+    defer motionWaitGroup.Done()
     DetectMotion(motionFrames, doneFrames, motions, videoStream.CodecCtx(), videoStream.TimeBase().AVR())
   }()
 
-  wg.Add(1)
+  motionResultsWaitGroup.Add(1)
   go func() {
-    defer wg.Done()
+    defer motionResultsWaitGroup.Done()
     for motion := range motions {
       if motion.MotionDetected {
         fmt.Println("found motion in frame ")
@@ -301,11 +303,17 @@ func (s *Camera) processVideo(sdp string) error {
   //any packets or frames that are currently waiting to be processed
   close(frames)
   close(packets)
-  close(motions)
-  close(motionFrames)
 
   //Wait for the frames, packets, and motion goroutines to finish
   wg.Wait()
+
+  //Give the motion goroutine a chance to finish reading
+  //from the now closed frames channel
+  close(motionFrames)
+  motionWaitGroup.Wait()
+
+  close(motions)
+  motionResultsWaitGroup.Wait()
 
   //Close these AFTER the other goroutines have finished
   close(doneFrames)
