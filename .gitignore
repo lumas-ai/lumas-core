@@ -128,3 +128,6 @@ persist
 
 # Config files
 config.yml
+
+# VS Code files
+.vscode
