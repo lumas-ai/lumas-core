@@ -3,8 +3,6 @@ package processor
 import (
   "os"
   "bufio"
-  "time"
-  "net"
   "io"
   "fmt"
   "log"
@@ -13,6 +11,7 @@ import (
   "errors"
   "image"
   "context"
+  "sync"
   "crypto/md5"
   "google.golang.org/grpc"
   . "github.com/3d0c/gmf"
@@ -26,25 +25,36 @@ var allocatedRTPPorts []int
 type RTPClient struct {
   sdp string
   port int32
+  open bool
+  inputCtx *FmtCtx
 }
 
 type Camera struct {
   Id int64
   Name string
   audioRTPClient *RTPClient
+  audioCloseChan chan bool
   videoRTPClient *RTPClient
+  videoCloseChan chan bool
   provider string
   providerAddress string
   providerConfig *_struct.Struct //Arbitrary struct defined in the protobuf
-  inputCtx *FmtCtx
 }
 
 func NewCamera() (*Camera, error) {
   c := &Camera{}
+
   return c, nil
 }
 
+func (r *RTPClient) isOpen() bool {
+  return r.open
+}
+
 func (r *RTPClient) Close() error {
+  r.open = false
+
+  //Give the ports back for new RTP clients
   err := unallocatePort(int(r.port))
   if err != nil {
     return err
@@ -70,22 +80,6 @@ func (s *Camera) providerClient() (api.CameraClient, error) {
   return client, nil
 }
 
-func getLocalIP() string {
-    addrs, err := net.InterfaceAddrs()
-    if err != nil {
-        return ""
-    }
-    for _, address := range addrs {
-        // check the address type and if it is not a loopback the display it
-        if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-            if ipnet.IP.To4() != nil {
-                return ipnet.IP.String()
-            }
-        }
-    }
-    return ""
-}
-
 func allocatePorts(num int) ([]int, error) {
   var rslice []int
   port := 9000
@@ -103,7 +97,6 @@ func allocatePorts(num int) ([]int, error) {
     port++
   }
 
-  fmt.Println(fmt.Sprintf("Allocating Ports: %v", rslice))
   return rslice, nil
 }
 
@@ -121,33 +114,7 @@ func unallocatePort(port int) error {
   return nil
 }
 
-func findFreePorts(num int) ([]int32, error) {
-  ports := make([]int32, num)
-  ip := getLocalIP()
-
-  log.Println(fmt.Sprintf("Creating RTP clients on IP %s", ip))
-  //Find an open UDP port
-  for i := 0; i < num; i++ {
-    for port := 9000; port < 10000; port++ {
-      addr := net.UDPAddr{
-        Port: port,
-        IP:   net.ParseIP(ip),
-      }
-      lp , err := net.ListenUDP("udp", &addr)
-      if err != nil {
-        continue
-      }
-      defer lp.Close()
-
-      ports[i] = int32(port)
-      break
-    }
-  }
-
-  return ports, nil
-}
-
-func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
+func (s *Camera) NewRTPClient(sdp string) (*RTPClient, error) {
   var rtpOptions []*Option
 
   //gmf.OpenInput can only take a file name for a SDP file, so
@@ -158,6 +125,7 @@ func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
 
   f, err := os.Create(filename)
   defer f.Close()
+  defer os.Remove(filename)
   if err != nil {
     return nil, err
   }
@@ -181,10 +149,15 @@ func (s *Camera) NewRTPClient(sdp string) (*FmtCtx, error) {
   err = os.Remove(filename)
   if err != nil {
     //We shouldn't fail on this error. Just log it
-    fmt.Println("Could not remove %s from filesystem", filename)
+    s.Log(fmt.Sprintf("Could not remove %s from filesystem", filename))
   }
 
-  return inputCtx, nil
+  rtpClient := &RTPClient{
+    sdp: sdp,
+    inputCtx: inputCtx,
+    open: true,
+  }
+  return rtpClient, nil
 }
 
 func (s *Camera) GetSnapshot() (image.Image, error) {
@@ -209,32 +182,42 @@ func (s *Camera) GetSnapshot() (image.Image, error) {
 }
 
 func (s *Camera) Log(msg string) {
-  fmt.Println(fmt.Sprintf("[%d] %s", s.Id, msg))
+  log.Println(fmt.Sprintf("[%d] %s", s.Id, msg))
+}
+
+func FmtError(err *api.Result) string {
+  if err == nil || err.ErrorKind == "" || err.Message == "" {
+    return "Unknown Error"
+  }
+
+  return fmt.Sprintf("ErrorKind: %s - %s", err.ErrorKind, err.Message)
 }
 
 func (s *Camera) processVideo(sdp string) error {
-  inputCtx, err := s.NewRTPClient(sdp)
+  var wg sync.WaitGroup
+  var motionWaitGroup sync.WaitGroup
+  var motionResultsWaitGroup sync.WaitGroup
+  var err error
+
+  s.videoRTPClient, err = s.NewRTPClient(sdp)
   if err != nil {
     return err
   }
+
+  inputCtx := s.videoRTPClient.inputCtx
+  defer inputCtx.Free()
 
   videoStream, err := inputCtx.GetStream(0)
   if err != nil {
     s.Log(fmt.Sprintf("Unable to open RTP stream: %s", err.Error()))
   }
 
-  frames  := make(chan *Frame, 100)
-  defer close(frames)
-  doneFrames := make(chan *Frame, 100)
-  defer close(doneFrames)
-  motionFrames  := make(chan *Frame, 100)
-  defer close(motionFrames)
-  motions := make(chan *Motion, 100)
-  defer close(motions)
-  packets := make(chan *Packet, 100)
-  defer close(packets)
-  donePackets := make(chan *Packet, 100)
-  defer close(donePackets)
+  frames       := make(chan *Frame, 100)
+  doneFrames   := make(chan *Frame, 100)
+  motionFrames := make(chan *Frame, 100)
+  motions      := make(chan *Motion, 100)
+  packets      := make(chan *Packet, 100)
+  donePackets  := make(chan *Packet, 100)
 
   // When frames are done being processed, they're sent to the
   // to the doneFrames channel so they can be freed from memory
@@ -252,7 +235,10 @@ func (s *Camera) processVideo(sdp string) error {
   }()
 
   //Look for motion in every 10th frame to conserve resources
+  wg.Add(1)
   go func() {
+    defer wg.Done()
+
     i := 1
     for frame := range frames {
       if i == 10 {
@@ -266,11 +252,21 @@ func (s *Camera) processVideo(sdp string) error {
   }()
 
   //Write the packets to disk concurrently
-  go s.WriteFile(packets, donePackets, inputCtx)
-
-  go DetectMotion(motionFrames, doneFrames, motions, videoStream.CodecCtx(), videoStream.TimeBase().AVR())
-
+  wg.Add(1)
   go func() {
+    defer wg.Done()
+    s.WriteFile(packets, donePackets, inputCtx)
+  }()
+
+  motionWaitGroup.Add(1)
+  go func() {
+    defer motionWaitGroup.Done()
+    DetectMotion(motionFrames, doneFrames, motions, videoStream.CodecCtx(), videoStream.TimeBase().AVR())
+  }()
+
+  motionResultsWaitGroup.Add(1)
+  go func() {
+    defer motionResultsWaitGroup.Done()
     for motion := range motions {
       if motion.MotionDetected {
         fmt.Println("found motion in frame ")
@@ -278,29 +274,63 @@ func (s *Camera) processVideo(sdp string) error {
     }
   }()
 
+  getPackets:
   for {
+    select {
+    case _ = <-s.videoCloseChan:
+      break getPackets
+    default:
+    }
+
     packet, err := inputCtx.GetNextPacket()
-    if err == io.EOF {
-      return err
-    } else if err != nil {
-      fmt.Println("Could not get packet. Skipping")
+    if err != nil {
+      s.Log("Could not get packet. Skipping")
       continue
     }
 
     frame, err := packet.Frames(videoStream.CodecCtx())
     if err != nil {
-      log.Println("Missed packet at " + string(packet.Pts()) + ". " + err.Error())
+      s.Log(fmt.Sprintf("Missed packet at %d: %s", packet.Pts(), err.Error()))
       continue
     }
 
     packets <- packet
     frames <- frame
   }
+
+  //Close up our channels and wait for the goroutines to finish
+  //Note that we can close up the channels without throwing away
+  //any packets or frames that are currently waiting to be processed
+  close(frames)
+  close(packets)
+
+  //Wait for the frames, packets, and motion goroutines to finish
+  wg.Wait()
+
+  //Give the motion goroutine a chance to finish reading
+  //from the now closed frames channel
+  close(motionFrames)
+  motionWaitGroup.Wait()
+
+  close(motions)
+  motionResultsWaitGroup.Wait()
+
+  //Close these AFTER the other goroutines have finished
+  close(doneFrames)
+  close(donePackets)
+
+  //Give the final all clear
+  s.videoCloseChan <-true
+
+  s.Log("Video Processing has been closed")
+  return nil
 }
 
 func (s *Camera) processAudio(sdp string) error {
+  var err error
+
   //Allocate RTP listeners for audio/video streams
-  _, err := s.NewRTPClient(sdp)
+  s.audioRTPClient, err = s.NewRTPClient(sdp)
   if err != nil {
     return err
   }
@@ -315,6 +345,28 @@ func (s *Camera) StopFeed() error {
     return err
   }
 
+  //Send the close signal to the processors and wait for them to finish
+  if s.audioRTPClient != nil && s.audioRTPClient.isOpen() {
+    s.audioCloseChan <- true
+  }
+  if s.videoRTPClient != nil && s.videoRTPClient.isOpen() {
+    s.videoCloseChan <- true
+  }
+  if s.audioRTPClient != nil && s.audioRTPClient.isOpen() {
+    _ = <-s.audioCloseChan
+  }
+  if s.videoRTPClient != nil && s.videoRTPClient.isOpen() {
+    _ = <-s.videoCloseChan
+  }
+
+  //Close the RTP clients if they're still open
+  if s.videoRTPClient != nil && s.videoRTPClient.isOpen() {
+    s.videoRTPClient.Close()
+  }
+  if s.audioRTPClient != nil && s.audioRTPClient.isOpen() {
+    s.audioRTPClient.Close()
+  }
+
   c := api.CameraConfig{
     Config: s.providerConfig,
   }
@@ -323,7 +375,13 @@ func (s *Camera) StopFeed() error {
     CameraConfig: &c,
   }
 
-  provider.StopRTPStream(context.Background(), &rtpConfig)
+  //Tell the provider to stop streaming
+  result, _ := provider.StopRTPStream(context.Background(), &rtpConfig)
+  if result == nil || result.Successful != true {
+    m := FmtError(result)
+    s.Log(m)
+    return errors.New(m)
+  }
 
   return nil
 }
@@ -366,8 +424,12 @@ func (s *Camera) ProcessFeed() error {
     return err
   }
 
+  //Create a channel to pass messages to the video and audio
+  //goroutines that they need to stop
+
   if status.Sdp.Video != "" {
     go func() {
+      s.videoCloseChan = make(chan bool)
       s.processVideo(status.Sdp.Video)
     }()
   } else {
@@ -376,7 +438,8 @@ func (s *Camera) ProcessFeed() error {
 
   if status.Sdp.Audio != "" {
     go func() {
-      //s.processAudio(status.Sdp.Audio)
+      s.audioCloseChan = make(chan bool)
+      //s.processAudio(status.Sdp.Audio, closeChan)
     }()
   } else {
     s.Log("Provider did not provide any audio streaming information. Skipping processing audio")
@@ -385,14 +448,6 @@ func (s *Camera) ProcessFeed() error {
   //Listen for the status updates
   go func() {
     for {
-      if s.audioRTPClient != nil {
-        defer s.audioRTPClient.Close()
-      }
-
-      if s. videoRTPClient != nil {
-        defer s.videoRTPClient.Close()
-      }
-
       status, err := stream.Recv()
       if err == io.EOF {
         s.Log("Stream ended")
@@ -401,7 +456,6 @@ func (s *Camera) ProcessFeed() error {
 
       s.Log(fmt.Sprintf("Sent Frames: %d", status.SentFrames))
       s.Log(fmt.Sprintf("Dropped Frames: %d", status.DroppedFrames))
-      time.Sleep(5 * time.Second)
     }
   }()
 
