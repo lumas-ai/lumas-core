@@ -10,12 +10,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 
+  "github.com/mitchellh/go-homedir"
 	"github.com/golang/protobuf/jsonpb"
 	cli "gopkg.in/urfave/cli.v1"
 	altsrc "gopkg.in/urfave/cli.v1/altsrc"
@@ -290,8 +290,7 @@ func process(cameraID int) error {
 }
 
 func main() {
-	usr, _ := user.Current()
-	home := usr.HomeDir
+	home, _ := homedir.Dir()
 
 	cfgFile := filepath.Join(home, ".lumasctl.cfg")
 
