@@ -5,17 +5,25 @@ package lumas;
 import "google/protobuf/struct.proto";
 
 service Camera {
-  rpc add     (CameraConfig) returns (Result);
-  rpc list    (ListRequest)  returns (stream CameraConfig);
-  rpc remove  (CameraID) returns (Result);
-  rpc stop    (CameraID) returns (Result);
-  rpc process (CameraID) returns (Result);
+  rpc add      (CameraConfig) returns (Result);
+  rpc list     (ListRequest)  returns (stream CameraConfig);
+  rpc remove   (CameraID) returns (Result);
+  rpc stop     (CameraID) returns (Result);
+  rpc process  (CameraID) returns (Result);
+  rpc describe (CameraID) returns (CameraInfo);
 }
 
 //It's unlikely we'll ever want to pass arguments to list
 // but this message is hear just in case
 message ListRequest {
   repeated CameraID cameraID = 1;
+}
+
+message CameraInfo {
+  string videoFormat = 1;
+  string audioFormat = 2;
+  string pixFormat = 3;
+  int32  frameRate = 4;
 }
 
 message CameraID {
