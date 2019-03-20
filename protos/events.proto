@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package lumas;
+
+import "google/protobuf/struct.proto";
+import "image.proto";
+import "result.proto";
+
+service Events {
+  rpc RegisterAction (EventAction) returns (Result);
+  rpc subscribe      (Subscriber)  returns (stream Event);
+  rpc publish        (Event)       returns (Result);
+}
+
+message Subscriber {
+  string name = 1;
+}
+
+message Frame {
+  Image image = 1;
+  int64 presentationTimeStamp =2;
+}
+
+message Video {
+  int64 startPTS = 1;
+  int64 endPTS = 2;
+  string source = 3;
+}
+
+message Artifact {
+  string name = 1;
+  Frame frame = 2;
+  Video video = 3;
+  google.protobuf.Struct parameters = 4;
+}
+
+message Action {
+  string name = 1;
+  repeated Artifact artifact = 2;
+  google.protobuf.Struct parameters = 3;
+}
+
+message Service {
+  string name = 1;
+  int64 id = 2;
+}
+
+message EventAction {
+  Event event = 1;
+  Action action = 2;
+  repeated Camera camera = 3;
+  string send = 4;
+  Service receiver = 5;
+}
+
+message Event {
+  string type = 1;
+  Camera camera = 2;
+  int64 presentationTimeStamp = 3;
+  Artifact artifact = 4;
+}
+
+message Camera {
+  int64 id = 1;
+  string name = 2;
+}

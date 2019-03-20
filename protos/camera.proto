@@ -3,6 +3,7 @@ syntax = "proto3";
 package lumas;
 
 import "google/protobuf/struct.proto";
+import "result.proto";
 
 service Camera {
   rpc add      (CameraConfig) returns (Result);
@@ -28,12 +29,6 @@ message CameraInfo {
 
 message CameraID {
   int64 id = 1;
-}
-
-message Result {
-  bool successful = 1;
-  string errorKind = 2;
-  string message = 3;
 }
 
 message CameraConfig {

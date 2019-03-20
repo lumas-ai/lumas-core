@@ -4,4 +4,5 @@ package lumas;
 
 message Image {
   string base64Image = 1;
+  string format = 2;
 }
