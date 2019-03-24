@@ -18,7 +18,7 @@ var (
 	certFile   = flag.String("cert_file", "", "The TLS cert file")
 	keyFile    = flag.String("key_file", "", "The TLS key file")
 	iface      = flag.String("host", "0.0.0.0", "The interface to listen on")
-	port       = flag.Int("port", 5389, "The port to listen on")
+	port       = flag.Int("port", 5388, "The port to listen on")
 )
 
 func main() {
