@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-package lumas;
-
-message Image {
-  string base64Image = 1;
-}

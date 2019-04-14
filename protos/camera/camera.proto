@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lumas;
+package lumas_core_camera;
 
 import "google/protobuf/struct.proto";
 
@@ -19,27 +19,31 @@ message ListRequest {
   repeated CameraID cameraID = 1;
 }
 
-message CameraInfo {
-  string videoFormat = 1;
-  string audioFormat = 2;
-  string pixFormat = 3;
-  int32  frameRate = 4;
-}
-
 message CameraID {
   int64 id = 1;
 }
 
-message Result {
-  bool successful = 1;
-  string errorKind = 2;
-  string message = 3;
-}
-
 message CameraConfig {
-  int64  id = 1;
+  CameraInfo camera = 1;
   string name = 2;
   string provider = 3;
   string providerAddress = 4;
   google.protobuf.Struct providerConfig = 5;
+}
+
+message CameraInfo {
+  string     id = 1;
+  string     name = 2;
+  CameraInfo info = 3;
+  string     videoFormat = 4;
+  string     audioFormat = 5;
+  string     pixFormat = 6;
+  int32      frameRate = 7;
+  string     provider = 8;
+}
+
+message Result {
+  bool   successful = 1;
+  string errorKind = 2;
+  string message = 3;
 }

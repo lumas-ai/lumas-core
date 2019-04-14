@@ -2,11 +2,9 @@ syntax = "proto3";
 
 package processor;
 
-import "image.proto";
-
 service Motion {
   rpc detectMotion (Images) returns (MotionResults) {};
-  rpc detectMotionStream (stream lumas.Image) returns (stream MotionResults) {};
+  rpc detectMotionStream (stream Image) returns (stream MotionResults) {};
 }
 
 message MotionArea {
@@ -17,12 +15,16 @@ message MotionArea {
 }
 
 message Images {
-  lumas.Image firstImage = 1;
-  lumas.Image secondImage = 2;
+  Image firstImage = 1;
+  Image secondImage = 2;
 }
 
 message MotionResults {
   bool motionDetected = 1;
   repeated MotionArea motionAreas = 2;
-  lumas.Image image = 3;
+  Image image = 3;
+}
+
+message Image {
+  string base64Image = 1;
 }
