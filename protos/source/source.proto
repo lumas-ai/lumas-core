@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package lumas_core_source;
+
+service Source {
+  rpc add(SourceInfo)         returns (SourceID) {}
+  rpc list(SourceListRequest) returns (stream SourceInfo) {}
+  rpc update(SourceInfo)      returns (Result) {}
+  rpc delete(SourceID)        returns (Result) {}
+  rpc describe(SourceID)      returns (SourceInfo) {}
+}
+
+enum SourceType {
+  EVENT = 0;
+  CAMERA = 1;
+}
+
+//Empty list request in case we want to
+//extend it later without breaking the API
+message SourceListRequest {
+}
+
+message SourceInfo {
+  string     id = 1; //null if adding a new source
+  SourceType type = 2;
+  string     CameraID = 3;
+  string     EventID = 4;
+}
+
+message SourceID {
+  string id = 1;
+}
+
+message Result {
+  bool   successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}

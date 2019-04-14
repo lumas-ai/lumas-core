@@ -9,6 +9,8 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -236,6 +238,14 @@ func (c *registerClient) Register(ctx context.Context, in *PluginRegistration, o
 // RegisterServer is the server API for Register service.
 type RegisterServer interface {
 	Register(context.Context, *PluginRegistration) (*RegisterResult, error)
+}
+
+// UnimplementedRegisterServer can be embedded to have forward compatible implementations.
+type UnimplementedRegisterServer struct {
+}
+
+func (*UnimplementedRegisterServer) Register(ctx context.Context, req *PluginRegistration) (*RegisterResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 
 func RegisterRegisterServer(s *grpc.Server, srv RegisterServer) {

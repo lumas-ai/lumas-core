@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package lumas_core_stream;
+
+service Stream {
+  rpc setup    (Source)  returns (Session) {}
+  rpc play     (Session) returns (Result) {}
+  rpc pause    (Session) returns (Result) {}
+  rpc describe (Source)  returns (StreamSourceInfo) {}
+  rpc teardown (Session) returns (Result) {}
+  rpc status   (Session) returns (SessionStatus) {}
+  rpc record   (Source)  returns (Session) {}
+}
+
+message Session {
+  string id = 1;
+  Source source = 2;
+}
+
+message SessionStatus {
+  enum State {
+    PLAYING = 0;
+    PAUSED = 1;
+    TEARDOWN = 2;
+  }
+  State state = 1;
+  int64 sentFrames = 2;
+  int64 droppedFrames = 3;
+  repeated Annotation annotations = 4;
+}
+
+message Annotation {
+  string id = 1;
+}
+
+message RTPConfig {
+  string rtpAddress = 1;
+  int32  audioRTPPort = 2;
+  int32  videoRTPPort = 3;
+}
+
+message Source {
+  enum StreamType {
+    MJPEG = 0;
+    RTP  = 1;
+  }
+  string     id = 1;
+  StreamType type = 2;
+  Timing     timing = 4; //Used for playback
+  RTPConfig  rtpConfig = 5;
+}
+
+message StreamSourceInfo {
+  string id = 1;
+  string sdp = 2;
+  bool   hasLiveStream = 3;
+  Timing timing = 4;
+}
+
+message Timing {
+  bool  live = 1;
+  int64 startTime = 2;
+  int64 stopTime = 3;
+}
+
+message Video {
+  string format = 1;
+  string codec = 2;
+  string pixelFormat = 3;
+}
+
+message Audio {
+  string codec = 1;
+}
+
+message Camera {
+  string id = 1;
+  bool  hasVideo = 2;
+  bool  hasAudio = 3;
+  Video video = 4;
+  Audio audio = 5;
+}
+
+message Result {
+  bool   successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}
