@@ -1,9 +1,22 @@
-Lumas enables person detection and HomeKit support to off the shelf IP camera.
+Lumas provides intelligence to off-the-shelf IP cameras. It's goal is to make
+it possible for anyone to solve problems with computer vision without requiring
+computer vision experience or even a software development background.
 
-![HomeKit notification](images/notification.jpg)
+Lumas will be able to manage the camera connections, video storage, feed
+processing, event handling, and actions. For example, Lumas can connect to any
+IP camera, process the feed for motion, classify any moving objects (person,
+animal, car, etc.), and take action if a condition is met (e.g. a person is
+detected on premises after dark).
 
-Currently it only support Amcrest IP cameras, but more camera support is coming.
-Presently it also only supports one camera at a time.
+This is the Lumas core services. These services are
+
+* stream processor
+* client (lumasctl)
+* API protobufs
+
+Future services:
+* session server
+* event service
 
 ## Setup
 
