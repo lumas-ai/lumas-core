@@ -1,0 +1,17 @@
+---
+cameras:
+  - name: "Camera 1"
+    id: 123456789
+    provider:
+      address: "lumas-onvif:5390"
+      name: onvif
+      config:
+        rtspStream: "rtsp://admin:supersecretpassword@cam1.internal.local"
+
+  - name: "Camera 2"
+    id: 987654321
+    provider:
+      name: onvif
+      address: "lumas-onvif:5390"
+      config:
+        rtspStream: .rtsp://admin:supersecretpassword@cam2.internal.local"
