@@ -1,3 +1,5 @@
+# Lumas
+
 Lumas provides intelligence to off-the-shelf IP cameras. It's goal is to make
 it possible for anyone to solve problems with computer vision without requiring
 computer vision experience or even a software development background.
