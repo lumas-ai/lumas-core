@@ -1,0 +1,29 @@
+version: '3'
+services:
+  lumas-onvif:
+    restart: always
+    image: lumas/lumas-provider-onvif-build-image
+    networks:
+      - "lumas"
+    ports:
+      - "5390:5390"
+    volumes:
+      - "./lumas-provider-onvif:/go/src/github.com/lumas-ai/lumas-provider-onvif"
+      - "videos:/videos"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-provider-onvif/cmd/onvif/onvif-server.go"
+  lumas-processor:
+    restart: always
+    image: lumas/lumas-processor-build-image
+    networks:
+      - "lumas"
+    ports:
+      - "5389:5389"
+      - "9000-9200:9000-9200/udp"
+    volumes:
+      - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+      - "videos:/videos"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-core/processor/cmd/server/processor-server.go"
+volumes:
+  videos:
+networks:
+  lumas:

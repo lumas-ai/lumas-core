@@ -18,11 +18,14 @@ Presently it also only supports one camera at a time.
 ### Quick Start
 
 #### Run the Lumas server
-1) Create a directory called `lumas`
-2) Clone this repo to the `lumas` directory
-3) Clone the [ONVIF provider extension](https://github.com/lumas-ai/lumas-provider-onvif) into the `lumas` directory
-3) Copy the docker-compose.yml file from this repo to the `lumas` directory
-4) Run with `docker-compose up`
+
+1) Copy the docker-compose.yml file from this repo to the Lumas server
+2) Run with `docker-compose up`
+
+Now you will have a Lumas server ready to receieve a configuration for ONVIF
+compatible cameras. It will process the RTSP stream and watch for motion as
+well as save the camera feed to a file in the "video" Docker volume. The Docker
+volume is created automatically if it does not already exist.
 
 #### Create a configuration
 
@@ -74,9 +77,17 @@ cameras:
         rtspAddress: "rtsp://<username>:<password>@<camera address>"
 ```
 
-### Running
+## Development
 
-Run the application with `docker-compose up -d`
+1) Create a directory called `lumas`
+2) Clone this repo to the `lumas` directory
+3) Clone the [ONVIF provider extension](https://github.com/lumas-ai/lumas-provider-onvif) into the `lumas` directory
+3) Copy the docker-compose.dev.yml file from this repo to the `lumas` directory
+4) Run with `docker-compose -f docker-compose.dev.yml up`. Note, make sure you stop any Lumas servers you already had running.
+
+Any time you modify files in the git clones, you can restart the Lumas server
+with the new code using the following command: 
+`DC=docker-compose.dev.yml docker-compose -f $DC down && docker-compose -f $DC up`
 
 ## Roadmap
 

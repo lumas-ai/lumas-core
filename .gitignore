@@ -118,10 +118,6 @@ vgg16.npy
 # HomeKit persistance files
 homekit/persist
 
-# Development docker-compose file
-docker-compose.dev.yml
-docker-compose.yml
-
 logs
 
 persist

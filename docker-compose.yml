@@ -1,0 +1,23 @@
+version: '3'
+services:
+  lumas-onvif:
+    restart: always
+    image: lumas/lumas-provider-onvif
+    networks:
+      - "lumas"
+    ports:
+      - "5390:5390"
+  lumas-processor:
+    restart: always
+    image: lumas/lumas-core-processor
+    networks:
+      - "lumas"
+    ports:
+      - "5389:5389"
+      - "9000-9200:9000-9200/udp" #RTP ports
+    volumes:
+      - "videos:/videos"
+volumes:
+  videos:
+networks:
+  lumas:
