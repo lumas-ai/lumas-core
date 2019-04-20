@@ -14,6 +14,7 @@ import (
 )
 
 type StreamServer struct {
+	sessions []*api.Session
 	redis    *rejson.Handler
 }
 
