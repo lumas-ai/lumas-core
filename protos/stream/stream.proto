@@ -9,12 +9,17 @@ service Stream {
   rpc describe (Source)  returns (StreamSourceInfo) {}
   rpc teardown (Session) returns (Result) {}
   rpc status   (Session) returns (SessionStatus) {}
-  rpc record   (Source)  returns (Session) {}
+  rpc record   (Source)  returns (RecordSession) {}
+}
+
+message RecordSession {
+  string    id = 1;
+  RTPConfig rtpConfig = 3;
 }
 
 message Session {
-  string id = 1;
-  Source source = 2;
+  string    id = 1;
+  Source    source = 2;
 }
 
 message SessionStatus {

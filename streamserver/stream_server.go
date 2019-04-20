@@ -14,7 +14,8 @@ import (
 )
 
 type StreamServer struct {
-	redis *rejson.Handler
+	sessions []*api.Session
+	redis    *rejson.Handler
 }
 
 func Init(redisServer string, redisPass string) (*StreamServer, error) {
@@ -157,5 +158,14 @@ func (s *StreamServer) Status(ctx context.Context, source *api.Session) (*api.Se
 }
 
 func (s *StreamServer) Record(ctx context.Context, source *api.Source) (*api.Session, error) {
-	return &api.Session{Id: "12345"}, nil
+	session := &api.Session{
+		Id: "12345",
+		RTPConfig: {
+			rtpAddress:   "lumas-processor",
+			audioRTPPort: 9000,
+			videoRTPPort: 9001,
+		},
+	}
+
+	return session, nil
 }
