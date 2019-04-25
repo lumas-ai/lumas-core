@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -641,14 +639,6 @@ type ImageClassificationServer interface {
 	Classify(context.Context, *ImageToBeClassified) (*Classification, error)
 }
 
-// UnimplementedImageClassificationServer can be embedded to have forward compatible implementations.
-type UnimplementedImageClassificationServer struct {
-}
-
-func (*UnimplementedImageClassificationServer) Classify(ctx context.Context, req *ImageToBeClassified) (*Classification, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Classify not implemented")
-}
-
 func RegisterImageClassificationServer(s *grpc.Server, srv ImageClassificationServer) {
 	s.RegisterService(&_ImageClassification_serviceDesc, srv)
 }
@@ -711,14 +701,6 @@ func (c *audioClassificationClient) Classify(ctx context.Context, in *AudioToBeC
 // AudioClassificationServer is the server API for AudioClassification service.
 type AudioClassificationServer interface {
 	Classify(context.Context, *AudioToBeClassified) (*Classification, error)
-}
-
-// UnimplementedAudioClassificationServer can be embedded to have forward compatible implementations.
-type UnimplementedAudioClassificationServer struct {
-}
-
-func (*UnimplementedAudioClassificationServer) Classify(ctx context.Context, req *AudioToBeClassified) (*Classification, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Classify not implemented")
 }
 
 func RegisterAudioClassificationServer(s *grpc.Server, srv AudioClassificationServer) {

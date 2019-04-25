@@ -9,8 +9,6 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -504,20 +502,6 @@ type CameraServer interface {
 	StreamRTP(*RTPConfig, Camera_StreamRTPServer) error
 	StopRTPStream(context.Context, *RTPConfig) (*Result, error)
 	Snapshot(context.Context, *CameraConfig) (*Image, error)
-}
-
-// UnimplementedCameraServer can be embedded to have forward compatible implementations.
-type UnimplementedCameraServer struct {
-}
-
-func (*UnimplementedCameraServer) StreamRTP(req *RTPConfig, srv Camera_StreamRTPServer) error {
-	return status.Errorf(codes.Unimplemented, "method StreamRTP not implemented")
-}
-func (*UnimplementedCameraServer) StopRTPStream(ctx context.Context, req *RTPConfig) (*Result, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StopRTPStream not implemented")
-}
-func (*UnimplementedCameraServer) Snapshot(ctx context.Context, req *CameraConfig) (*Image, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Snapshot not implemented")
 }
 
 func RegisterCameraServer(s *grpc.Server, srv CameraServer) {

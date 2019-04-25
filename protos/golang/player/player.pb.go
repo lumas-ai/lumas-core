@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -266,17 +264,6 @@ func (x *streamPlaybackClient) Recv() (*VideoPacket, error) {
 type StreamServer interface {
 	Stream(*Camera, Stream_StreamServer) error
 	Playback(*Video, Stream_PlaybackServer) error
-}
-
-// UnimplementedStreamServer can be embedded to have forward compatible implementations.
-type UnimplementedStreamServer struct {
-}
-
-func (*UnimplementedStreamServer) Stream(req *Camera, srv Stream_StreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method Stream not implemented")
-}
-func (*UnimplementedStreamServer) Playback(req *Video, srv Stream_PlaybackServer) error {
-	return status.Errorf(codes.Unimplemented, "method Playback not implemented")
 }
 
 func RegisterStreamServer(s *grpc.Server, srv StreamServer) {
