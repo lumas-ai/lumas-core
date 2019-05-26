@@ -60,6 +60,7 @@ message StreamSourceInfo {
   string sdp = 2;
   bool   hasLiveStream = 3;
   Timing timing = 4;
+  repeated Session sessions = 5;
 }
 
 message Timing {

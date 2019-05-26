@@ -9,7 +9,7 @@ import (
   "google.golang.org/grpc"
 
   . "github.com/lumas-ai/lumas-core/processor"
-  api "github.com/lumas-ai/lumas-core/protos/golang"
+  api "github.com/lumas-ai/lumas-core/protos/golang/processor"
 )
 
 var (
@@ -27,8 +27,8 @@ func main() {
   if err != nil {
     log.Fatalf("failed to listen: %v", err)
   }
-  s := CameraServer{}
+  s := ProcessorServer{}
   grpcServer := grpc.NewServer()
-  api.RegisterCameraServer(grpcServer, &s)
+  api.RegisterProcessorServer(grpcServer, &s)
   grpcServer.Serve(lis)
 }

@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -377,26 +375,6 @@ type SourceServer interface {
 	Update(context.Context, *SourceInfo) (*Result, error)
 	Delete(context.Context, *SourceID) (*Result, error)
 	Describe(context.Context, *SourceID) (*SourceInfo, error)
-}
-
-// UnimplementedSourceServer can be embedded to have forward compatible implementations.
-type UnimplementedSourceServer struct {
-}
-
-func (*UnimplementedSourceServer) Add(ctx context.Context, req *SourceInfo) (*SourceID, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Add not implemented")
-}
-func (*UnimplementedSourceServer) List(req *SourceListRequest, srv Source_ListServer) error {
-	return status.Errorf(codes.Unimplemented, "method List not implemented")
-}
-func (*UnimplementedSourceServer) Update(ctx context.Context, req *SourceInfo) (*Result, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
-}
-func (*UnimplementedSourceServer) Delete(ctx context.Context, req *SourceID) (*Result, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (*UnimplementedSourceServer) Describe(ctx context.Context, req *SourceID) (*SourceInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Describe not implemented")
 }
 
 func RegisterSourceServer(s *grpc.Server, srv SourceServer) {

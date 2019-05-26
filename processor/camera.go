@@ -6,17 +6,11 @@ import (
   "io"
   "fmt"
   "log"
-  "strings"
-  "encoding/base64"
   "errors"
-  "image"
-  "context"
   "sync"
   "crypto/md5"
-  "google.golang.org/grpc"
   . "github.com/3d0c/gmf"
-  _struct "github.com/golang/protobuf/ptypes/struct"
-  api "github.com/lumas-ai/lumas-core/protos/golang/provider"
+  api "github.com/lumas-ai/lumas-core/protos/golang/processor"
   _ "image/jpeg"
 )
 
@@ -29,23 +23,20 @@ type RTPClient struct {
   inputCtx *FmtCtx
 }
 
-type Camera struct {
-  Id int64
-  Name string
+type Feed struct {
+  Id string
+  RTPConfig *api.RTPConfig
   audioRTPClient *RTPClient
   audioCloseChan chan bool
   videoRTPClient *RTPClient
   videoCloseChan chan bool
-  provider string
-  providerAddress string
-  providerConfig *_struct.Struct //Arbitrary struct defined in the protobuf
 }
 
-func NewCamera() (*Camera, error) {
-  c := &Camera{}
-
-  return c, nil
-}
+//func NewCamera() (*Camera, error) {
+//  c := &Camera{}
+//
+//  return c, nil
+//}
 
 func (r *RTPClient) isOpen() bool {
   return r.open
@@ -63,22 +54,22 @@ func (r *RTPClient) Close() error {
   return nil
 }
 
-func (s *Camera) providerClient() (api.CameraClient, error) {
-  var opts []grpc.DialOption
-
-  if len(s.providerAddress) == 0 {
-    return nil, errors.New("Camera does not have a configured provider")
-  }
-
-  opts = append(opts, grpc.WithInsecure())
-  conn, err := grpc.Dial(s.providerAddress, opts...)
-  if err != nil {
-    return nil, err
-  }
-  client := api.NewCameraClient(conn)
-
-  return client, nil
-}
+//func (s *Camera) providerClient() (api.CameraClient, error) {
+//  var opts []grpc.DialOption
+//
+//  if len(s.providerAddress) == 0 {
+//    return nil, errors.New("Camera does not have a configured provider")
+//  }
+//
+//  opts = append(opts, grpc.WithInsecure())
+//  conn, err := grpc.Dial(s.providerAddress, opts...)
+//  if err != nil {
+//    return nil, err
+//  }
+//  client := api.NewCameraClient(conn)
+//
+//  return client, nil
+//}
 
 func allocatePorts(num int) ([]int, error) {
   var rslice []int
@@ -114,7 +105,7 @@ func unallocatePort(port int) error {
   return nil
 }
 
-func (s *Camera) NewRTPClient(sdp string) (*RTPClient, error) {
+func (s *Feed) NewRTPClient(sdp string) (*RTPClient, error) {
   var rtpOptions []*Option
 
   //gmf.OpenInput can only take a file name for a SDP file, so
@@ -160,28 +151,28 @@ func (s *Camera) NewRTPClient(sdp string) (*RTPClient, error) {
   return rtpClient, nil
 }
 
-func (s *Camera) GetSnapshot() (image.Image, error) {
-  client, err := s.providerClient()
-  if err != nil {
-    return nil, err
-  }
+//func (s *Camera) GetSnapshot() (image.Image, error) {
+//  client, err := s.providerClient()
+//  if err != nil {
+//    return nil, err
+//  }
+//
+//  c := api.CameraConfig{
+//    Config: s.providerConfig,
+//  }
+//
+//  img, err := client.Snapshot(context.Background(), &c)
+//  if err != nil {
+//    return nil, err
+//  }
+//
+//  reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(img.Base64Image))
+//  decodedImg, _, err := image.Decode(reader)
+//
+//  return decodedImg, nil
+//}
 
-  c := api.CameraConfig{
-    Config: s.providerConfig,
-  }
-
-  img, err := client.Snapshot(context.Background(), &c)
-  if err != nil {
-    return nil, err
-  }
-
-  reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(img.Base64Image))
-  decodedImg, _, err := image.Decode(reader)
-
-  return decodedImg, nil
-}
-
-func (s *Camera) Log(msg string) {
+func (s *Feed) Log(msg string) {
   log.Println(fmt.Sprintf("[%d] %s", s.Id, msg))
 }
 
@@ -193,7 +184,7 @@ func FmtError(err *api.Result) string {
   return fmt.Sprintf("ErrorKind: %s - %s", err.ErrorKind, err.Message)
 }
 
-func (s *Camera) processVideo(sdp string) error {
+func (s *Feed) processVideo(sdp string) error {
   var wg sync.WaitGroup
   var motionWaitGroup sync.WaitGroup
   var motionResultsWaitGroup sync.WaitGroup
@@ -326,7 +317,7 @@ func (s *Camera) processVideo(sdp string) error {
   return nil
 }
 
-func (s *Camera) processAudio(sdp string) error {
+func (s *Feed) processAudio(sdp string) error {
   var err error
 
   //Allocate RTP listeners for audio/video streams
@@ -338,13 +329,7 @@ func (s *Camera) processAudio(sdp string) error {
   return nil
 }
 
-func (s *Camera) StopFeed() error {
-  provider, err := s.providerClient()
-  if err != nil {
-    s.Log(err.Error())
-    return err
-  }
-
+func (s *Feed) StopFeed() error {
   //Send the close signal to the processors and wait for them to finish
   if s.audioRTPClient != nil && s.audioRTPClient.isOpen() {
     s.audioCloseChan <- true
@@ -367,122 +352,49 @@ func (s *Camera) StopFeed() error {
     s.audioRTPClient.Close()
   }
 
-  c := api.CameraConfig{
-    Config: s.providerConfig,
-  }
-
-  rtpConfig := api.RTPConfig{
-    CameraConfig: &c,
-  }
-
-  //Tell the provider to stop streaming
-  result, _ := provider.StopRTPStream(context.Background(), &rtpConfig)
-  if result == nil || result.Successful != true {
-    m := FmtError(result)
-    s.Log(m)
-    return errors.New(m)
-  }
-
   return nil
 }
 
-func (s *Camera) ProcessFeed() error {
-  provider, err := s.providerClient()
-  if err != nil {
-    s.Log(err.Error())
-    return err
-  }
+func NewFeed(id string, videoSDP string, audioSDP string) (*Feed, error) {
+  f := &Feed{ Id: id}
 
-  c := api.CameraConfig{
-    Config: s.providerConfig,
-  }
-
+  //Allocate 2 ports - one for video RTP and one for audio RTP
   ports, err := allocatePorts(2)
   if err != nil {
-    return errors.New("Could not allocate free UDP ports for RTP streams")
+    return nil, errors.New("Could not allocate free UDP ports for RTP streams")
   }
 
   audioPort := ports[0]
   videoPort := ports[1]
 
-  rtpConfig := api.RTPConfig{ RtpAddress: "lumas-processor",
+  //TODO: The RtpAddress returned needs to be dynamically determined by 
+  //the address of each particular instance of the service
+  rtpConfig := api.RTPConfig{ RtpAddress: "processor",
     AudioRTPPort: int32(audioPort),
     VideoRTPPort: int32(videoPort),
-    CameraConfig: &c,
   }
 
-  //Tell the camera provider to start streaming
-  stream, err := provider.StreamRTP(context.Background(), &rtpConfig)
-  if err != nil {
-    s.Log(fmt.Sprintf("Provider could not stream: %s", err.Error()))
-    return err
-  }
-  //The first response contains the SDP information
-  status, err := stream.Recv()
-  if err == io.EOF || status == nil {
-    s.Log("Did not receive SDP information from provider")
-    return err
-  }
+  f.RTPConfig = &rtpConfig
 
   //Create a channel to pass messages to the video and audio
   //goroutines that they need to stop
-
-  if status.Sdp.Video != "" {
+  if videoSDP != "" {
     go func() {
-      s.videoCloseChan = make(chan bool)
-      s.processVideo(status.Sdp.Video)
+      f.videoCloseChan = make(chan bool)
+      f.processVideo(videoSDP)
     }()
   } else {
-    s.Log("Provider did not provide any video streaming information. Skipping processing video")
+    f.Log("No video streaming information was provided. Skipping processing video")
   }
 
-  if status.Sdp.Audio != "" {
+  if audioSDP != "" {
     go func() {
-      s.audioCloseChan = make(chan bool)
-      //s.processAudio(status.Sdp.Audio, closeChan)
+      f.audioCloseChan = make(chan bool)
+      //f.processAudio(audioSDP, closeChan) //TODO: Processing audio breaks things for some reason
     }()
   } else {
-    s.Log("Provider did not provide any audio streaming information. Skipping processing audio")
+    f.Log("Provider did not provide any audio streaming information. Skipping processing audio")
   }
 
-  //Listen for the status updates
-  go func() {
-    for {
-      status, err := stream.Recv()
-      if err == io.EOF {
-        s.Log("Stream ended")
-        break
-      }
-
-      s.Log(fmt.Sprintf("Sent Frames: %d", status.SentFrames))
-      s.Log(fmt.Sprintf("Dropped Frames: %d", status.DroppedFrames))
-    }
-  }()
-
-  return nil
-}
-
-func (s *Camera) SetId(id int64) (*Camera) {
-  s.Id = id
-  return s
-}
-
-func (s *Camera) SetName(name string) (*Camera) {
-  s.Name = name
-  return s
-}
-
-func (s *Camera) SetProvider(provider string) (*Camera) {
-  s.provider = provider
-  return s
-}
-
-func (s *Camera) SetProviderAddress(address string) (*Camera) {
-  s.providerAddress = address
-  return s
-}
-
-func (s *Camera) SetProviderConfig(config *_struct.Struct) (*Camera) {
-  s.providerConfig = config
-  return s
+  return f, nil
 }

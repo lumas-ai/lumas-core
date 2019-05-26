@@ -8,11 +8,13 @@ import (
 	"log"
 
 	"github.com/go-redis/redis"
+  "github.com/google/uuid"
 	api "github.com/lumas-ai/lumas-core/protos/golang/source"
 	"github.com/nitishm/go-rejson"
 )
 
 type SourceServer struct {
+  sources []*Source
 	redis *rejson.Handler
 }
 
@@ -93,7 +95,7 @@ func (s *SourceServer) delSource(sourceID string) error {
 func (s *SourceServer) setSource(sourceInfo *api.SourceInfo) error {
 	rsource := &Source{
 		Id:         sourceInfo.Id,
-		SourceType: "CAMERA",
+		SourceType: CAMERA,
 		CameraID:   sourceInfo.CameraID,
 		EventID:    sourceInfo.EventID,
 	}
@@ -133,7 +135,26 @@ func (s *SourceServer) getSource(id string) (*Source, bool) {
 }
 
 func (s *SourceServer) Add(ctx context.Context, source *api.SourceInfo) (*api.SourceID, error) {
-	return &api.SourceID{Id: "12345"}, nil
+  var hasLiveStream bool
+
+  //Only cameras have live streams
+  if source.Type == CAMERA {
+    hasLiveStream = true
+  } else {
+    hasLiveStream = false
+  }
+
+  s := &Source{
+    Id: uuid.New().String(), //TODO This should be checked to make sure it doesn't already exist
+    SourceType: source.Type,
+    HasLiveStream: hasLiveStream,
+    CameraID: source.CameraID,
+    EventID: source.EventID,
+  }
+
+  sources.append(s)
+
+  return &SourceID{ Id: s.Id }, nil
 }
 
 func (s *SourceServer) List(listRequest *api.SourceListRequest, stream api.Source_ListServer) error {
@@ -141,6 +162,17 @@ func (s *SourceServer) List(listRequest *api.SourceListRequest, stream api.Sourc
 	if _, err := s.redis.JSONGet("source", "."); err != nil {
 		return err
 	}
+
+  for _, source := range sources {
+    s := &api.SourceInfo{
+      Id: source.Id,
+      Type: source.SourceType,
+      CameraID: source.CameraID,
+      Event.ID: source.EventID,
+    }
+
+    stream.Send(s)
+  }
 
 	return nil
 }
@@ -163,5 +195,19 @@ func (s *SourceServer) Delete(ctx context.Context, sourceID *api.SourceID) (*api
 }
 
 func (s *SourceServer) Describe(ctx context.Context, sourceID *api.SourceID) (*api.SourceInfo, error) {
-	return &api.SourceInfo{Id: "12345"}, nil
+  //Return when we've found a match
+  for _, source := range sources {
+    if source.Id == sourceID.Id {
+      s := &api.SourceInfo {
+        Id: source.Id,
+        Type: source.SourceType,
+        CameraID: source.CameraID,
+        EventID: source.EventID,
+      }
+
+      return s, nil
+    }
+  }
+
+	return nil, errors.Error(fmt.Sprintf("Could not find source with ID %s", sourceID.Id))
 }

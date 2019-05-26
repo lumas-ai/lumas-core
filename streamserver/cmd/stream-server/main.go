@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	api "github.com/lumas-ai/lumas-core/protos/golang/stream"
-	"github.com/lumas-ai/lumas-core/streamserver"
+	. "github.com/lumas-ai/lumas-core/streamserver"
 )
 
 var (
@@ -29,8 +29,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s, _ := streamserver.Init(*redisServer, *redisPass)
 
+        s := &StreamServer{}
 	grpcServer := grpc.NewServer()
 	api.RegisterStreamServer(grpcServer, s)
 	grpcServer.Serve(lis)

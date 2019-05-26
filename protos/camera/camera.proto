@@ -8,8 +8,6 @@ service Camera {
   rpc add      (CameraConfig) returns (Result);
   rpc list     (ListRequest)  returns (stream CameraConfig);
   rpc remove   (CameraID) returns (Result);
-  rpc stop     (CameraID) returns (Result);
-  rpc process  (CameraID) returns (Result);
   rpc describe (CameraID) returns (CameraInfo);
 }
 
@@ -20,7 +18,7 @@ message ListRequest {
 }
 
 message CameraID {
-  int64 id = 1;
+  string id = 1;
 }
 
 message CameraConfig {
@@ -34,12 +32,19 @@ message CameraConfig {
 message CameraInfo {
   string     id = 1;
   string     name = 2;
-  CameraInfo info = 3;
   string     videoFormat = 4;
   string     audioFormat = 5;
   string     pixFormat = 6;
   int32      frameRate = 7;
   string     provider = 8;
+  string     videoSDP = 9;
+  string     audioSDP = 10;
+  bool       hasAudio = 11;
+  bool       hasVideo = 12;
+  bool       hasPan = 13;
+  bool       hasTilt = 14;
+  bool       hasZoom = 15;
+  bool       acceptsAudio = 16;
 }
 
 message Result {

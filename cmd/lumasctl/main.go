@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -22,7 +21,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
-	api "github.com/lumas-ai/lumas-core/protos/golang"
+	api "github.com/lumas-ai/lumas-core/protos/golang/camera"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -48,7 +47,7 @@ type config struct {
 		Loglevel string
 	}
 	Cameras []struct {
-		Id       int
+		Id       string
 		Name     string
 		Provider struct {
 			Name    string
@@ -83,12 +82,12 @@ func loadConfig(file string) (*config, error) {
 func fmtCamera(camera *api.CameraConfig) string {
 	s := `
 %s:
-    ID: %d
+    ID: %s
     Provider: %s
     ProviderConfig: %v
 `
 
-	return fmt.Sprintf(s, camera.Name, camera.Id, camera.Provider, camera.ProviderConfig.String())
+	return fmt.Sprintf(s, camera.Name, camera.Camera.Id, camera.Provider, camera.ProviderConfig.String())
 }
 
 func newClient() (api.CameraClient, error) {
@@ -146,13 +145,13 @@ func apply(file string, purge bool) error {
 				//Loop through the configured cameras and see if the camera returned from the controller
 				//exists in the config. If not, purge it from the controller
 				for _, cam := range config.Cameras {
-					if int(camera.Id) == cam.Id {
+					if camera.Camera.Id == cam.Id {
 						wg.Done()
 						return
 					}
 				}
 
-				id := &api.CameraID{Id: camera.Id}
+				id := &api.CameraID{Id: camera.Camera.Id}
 				client.Remove(context.Background(), id)
 
 				wg.Done()
@@ -165,7 +164,8 @@ func apply(file string, purge bool) error {
 	//For each camera, call Add()
 	for _, camera := range config.Cameras {
 
-		c := &api.CameraConfig{Id: int64(camera.Id),
+    cc := &api.CameraInfo{Id: camera.Id}
+		c := &api.CameraConfig{Camera: cc,
 			Name:            camera.Name,
 			Provider:        camera.Provider.Name,
 			ProviderAddress: camera.Provider.Address,
@@ -186,7 +186,7 @@ func apply(file string, purge bool) error {
 
 		addResults, err := client.Add(context.Background(), c)
 		if err != nil || addResults == nil {
-			fmt.Println(fmt.Sprintf("Could not add camera %s", camera.Name))
+			fmt.Println(fmt.Sprintf("Could not add camera %s: %v", camera.Name, err))
 			continue
 		}
 		if addResults.Successful != true {
@@ -194,15 +194,15 @@ func apply(file string, purge bool) error {
 			continue
 		}
 
-		processResults, err := client.Process(context.Background(), &api.CameraID{Id: int64(camera.Id)})
-		if err != nil || processResults == nil {
-			fmt.Println(fmt.Sprintf("Could not process camera %s", camera.Name))
-			continue
-		}
-		if processResults.Successful != true {
-			fmt.Println(fmt.Sprintf("Could not process feed on camera %s. Error: %s - %s ", camera.Name, processResults.ErrorKind, processResults.Message))
-			continue
-		}
+		//processResults, err := client.Process(context.Background(), &api.CameraID{Id: int64(camera.Id)})
+		//if err != nil || processResults == nil {
+		//	fmt.Println(fmt.Sprintf("Could not process camera %s", camera.Name))
+		//	continue
+		//}
+		//if processResults.Successful != true {
+		//	fmt.Println(fmt.Sprintf("Could not process feed on camera %s. Error: %s - %s ", camera.Name, processResults.ErrorKind, processResults.Message))
+		//	continue
+		//}
 	}
 
 	return nil
@@ -237,16 +237,16 @@ func list() error {
 
 }
 
-func remove(cameraID int) error {
+func remove(cameraID string) error {
 	client, err := newClient()
 	if err != nil {
 		fmt.Println("Could not create client: " + err.Error())
 	}
 
-	req := &api.CameraID{Id: int64(cameraID)}
+	req := &api.CameraID{Id: cameraID}
 	result, err := client.Remove(context.Background(), req)
 	if err != nil || result == nil {
-		msg := fmt.Sprintf("Could not process camera %d", cameraID)
+		msg := fmt.Sprintf("Could not process camera %s", cameraID)
 		fmt.Println(msg)
 		return err
 	}
@@ -259,35 +259,35 @@ func remove(cameraID int) error {
 	return nil
 }
 
-func stop(cameraID int) error {
-	client, err := newClient()
-	if err != nil {
-		fmt.Println("could not create client: " + err.Error())
-	}
+//func stop(cameraID int) error {
+//	client, err := newClient()
+//	if err != nil {
+//		fmt.Println("could not create client: " + err.Error())
+//	}
+//
+//	req := &api.CameraID{Id: cameraID}
+//	result, err := client.Stop(context.Background(), req)
+//	if result.Successful != true {
+//		fmt.Println(fmt.Sprintf("could not stop camera %d\nerrorkind: %s\nerrormsg: %s", cameraID, result.ErrorKind, result.Message))
+//	}
+//
+//	return nil
+//}
 
-	req := &api.CameraID{Id: int64(cameraID)}
-	result, err := client.Stop(context.Background(), req)
-	if result.Successful != true {
-		fmt.Println(fmt.Sprintf("could not stop camera %d\nerrorkind: %s\nerrormsg: %s", cameraID, result.ErrorKind, result.Message))
-	}
-
-	return nil
-}
-
-func process(cameraID int) error {
-	client, err := newClient()
-	if err != nil {
-		fmt.Println("could not create client: " + err.Error())
-	}
-
-	req := &api.CameraID{Id: int64(cameraID)}
-	result, err := client.Process(context.Background(), req)
-	if result.Successful != true {
-		fmt.Println(fmt.Sprintf("could not stop camera %d\nerrorkind: %s\nerrormsg: %s", cameraID, result.ErrorKind, result.Message))
-	}
-
-	return nil
-}
+//func process(cameraID int) error {
+//	client, err := newClient()
+//	if err != nil {
+//		fmt.Println("could not create client: " + err.Error())
+//	}
+//
+//	req := &api.CameraID{Id: cameraID}
+//	result, err := client.Process(context.Background(), req)
+//	if result.Successful != true {
+//		fmt.Println(fmt.Sprintf("could not stop camera %d\nerrorkind: %s\nerrormsg: %s", cameraID, result.ErrorKind, result.Message))
+//	}
+//
+//	return nil
+//}
 
 func main() {
 	home, _ := homedir.Dir()
@@ -357,7 +357,7 @@ func main() {
 					Usage:     "Remove the camera and stop processing its feed",
 					UsageText: "remove <camera ID>",
 					Action: func(c *cli.Context) error {
-						id, _ := strconv.Atoi(c.Args().Get(0))
+						id := c.Args().Get(0)
 						err := remove(id)
 						if err != nil {
 							return cli.NewExitError(err.Error(), 1)
@@ -365,32 +365,32 @@ func main() {
 						return nil
 					},
 				},
-				cli.Command{
-					Name:      "stop",
-					Usage:     "Stop processing the camera's feed",
-					UsageText: "stop <camera ID>",
-					Action: func(c *cli.Context) error {
-						id, _ := strconv.Atoi(c.Args().Get(0))
-						err := stop(id)
-						if err != nil {
-							return cli.NewExitError(err.Error(), 1)
-						}
-						return nil
-					},
-				},
-				cli.Command{
-					Name:      "process",
-					Usage:     "Start processing a camera's feed",
-					UsageText: "process <camera ID>",
-					Action: func(c *cli.Context) error {
-						id, _ := strconv.Atoi(c.Args().Get(0))
-						err := process(id)
-						if err != nil {
-							return cli.NewExitError(err.Error(), 1)
-						}
-						return nil
-					},
-				},
+				//cli.Command{
+				//	Name:      "stop",
+				//	Usage:     "Stop processing the camera's feed",
+				//	UsageText: "stop <camera ID>",
+				//	Action: func(c *cli.Context) error {
+				//		id, _ := strconv.Atoi(c.Args().Get(0))
+				//		err := stop(id)
+				//		if err != nil {
+				//			return cli.NewExitError(err.Error(), 1)
+				//		}
+				//		return nil
+				//	},
+				//},
+				//cli.Command{
+				//	Name:      "process",
+				//	Usage:     "Start processing a camera's feed",
+				//	UsageText: "process <camera ID>",
+				//	Action: func(c *cli.Context) error {
+				//		id, _ := strconv.Atoi(c.Args().Get(0))
+				//		err := process(id)
+				//		if err != nil {
+				//			return cli.NewExitError(err.Error(), 1)
+				//		}
+				//		return nil
+				//	},
+				//},
 			},
 		},
 	}

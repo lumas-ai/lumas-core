@@ -17,7 +17,7 @@ func addStreams(inputCtx *FmtCtx, outputCtx *FmtCtx) {
   }
 }
 
-func (s *Camera) WriteFile(packets <-chan *Packet, donePackets chan<- *Packet, inputCtx *FmtCtx) {
+func (s *Feed) WriteFile(packets <-chan *Packet, donePackets chan<- *Packet, inputCtx *FmtCtx) {
   dstFileName := fmt.Sprintf("/videos/%d.ts", s.Id)
 
   outputCtx := assert(NewOutputCtxWithFormatName(dstFileName, "mpegts")).(*FmtCtx)

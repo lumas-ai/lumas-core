@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package processor;
+
+service Processor {
+  rpc setup    (Session) returns (RTPConfig);
+  rpc teardown (Session) returns (Result);
+}
+
+message Session {
+  string id = 1;
+  string videoSDP = 2;
+  string audioSDP = 3;
+}
+
+message RTPConfig {
+  string rtpAddress = 1;
+  int32  audioRTPPort = 2;
+  int32  videoRTPPort = 3;
+}
+
+message Result {
+  bool   successful = 1;
+  string errorKind = 2;
+  string message = 3;
+}

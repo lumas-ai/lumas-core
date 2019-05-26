@@ -5,9 +5,29 @@ package provider;
 import "google/protobuf/struct.proto";
 
 service Camera {
-  rpc StreamRTP (RTPConfig) returns (stream StreamInfo) {};
-  rpc StopRTPStream (RTPConfig) returns (Result) {};
-  rpc snapshot  (CameraConfig) returns (Image) {};
+  rpc Describe      (CameraConfig) returns (CameraInfo) {};
+  rpc StreamRTP     (RTPConfig)    returns (stream StreamInfo) {};
+  rpc StopRTPStream (Session)      returns (Result) {};
+  rpc snapshot      (CameraConfig) returns (Image) {};
+}
+
+message CameraInfo {
+  string     videoFormat = 4;
+  string     audioFormat = 5;
+  string     pixFormat = 6;
+  int32      frameRate = 7;
+  string     videoSDP = 9;
+  string     audioSDP = 10;
+  bool       hasAudio = 11;
+  bool       hasVideo = 12;
+  bool       hasPan = 13;
+  bool       hasTilt = 14;
+  bool       hasZoom = 15;
+  bool       acceptsAudio = 16;
+}
+
+message Session {
+  string id = 1;
 }
 
 message RTPConfig {
