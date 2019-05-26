@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -328,17 +326,6 @@ func (x *motionDetectMotionStreamClient) Recv() (*MotionResults, error) {
 type MotionServer interface {
 	DetectMotion(context.Context, *Images) (*MotionResults, error)
 	DetectMotionStream(Motion_DetectMotionStreamServer) error
-}
-
-// UnimplementedMotionServer can be embedded to have forward compatible implementations.
-type UnimplementedMotionServer struct {
-}
-
-func (*UnimplementedMotionServer) DetectMotion(ctx context.Context, req *Images) (*MotionResults, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DetectMotion not implemented")
-}
-func (*UnimplementedMotionServer) DetectMotionStream(srv Motion_DetectMotionStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method DetectMotionStream not implemented")
 }
 
 func RegisterMotionServer(s *grpc.Server, srv MotionServer) {
