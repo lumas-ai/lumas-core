@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package processor;
+
+service Motion {
+  rpc detectMotion (Images) returns (MotionResults) {};
+  rpc detectMotionStream (stream Image) returns (stream MotionResults) {};
+}
+
+message MotionArea {
+  int32 x = 1;
+  int32 y = 2;
+  int32 height = 3;
+  int32 width = 4;
+}
+
+message Images {
+  Image firstImage = 1;
+  Image secondImage = 2;
+}
+
+message MotionResults {
+  bool motionDetected = 1;
+  repeated MotionArea motionAreas = 2;
+  Image image = 3;
+}
+
+message Image {
+  string base64Image = 1;
+}
