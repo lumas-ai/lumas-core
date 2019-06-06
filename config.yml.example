@@ -7,6 +7,19 @@ cameras:
       name: onvif
       config:
         rtspStream: "rtsp://admin:supersecretpassword@cam1.internal.local"
+    processors:
+      homekit:
+        events:
+          - on: person
+            do: motion
+              annotate: true
+              include_snapshot: true
+      ifttt:
+        events:
+          - on: person.count > 50
+            do: runApplet
+              id: 35799066
+              message: "Over capacity"
 
   - name: "Camera 2"
     id: 987654321
