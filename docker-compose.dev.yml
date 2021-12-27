@@ -1,0 +1,65 @@
+version: '3'
+services:
+  traefik:
+    restart: always
+    image: traefik
+    networks:
+      - "lumas"
+    ports:
+      - "8888:8888"
+      - "8081:8080"
+    volumes:
+      - "./traefik.toml:/etc/traefik/traefik.toml"
+      - "./logs:/logs"
+    command: "--web"
+  onvif:
+    restart: always
+    image: lumas/lumas-provider-onvif-build-image
+    networks:
+      - "lumas"
+    ports:
+      - "5390:5390"
+    volumes:
+      - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+      - "./lumas-provider-onvif:/go/src/github.com/lumas-ai/lumas-provider-onvif"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-provider-onvif/cmd/onvif/onvif-server.go"
+  camera:
+    restart: always
+    image: lumas/lumas-camera-build-image
+    networks:
+      - "lumas"
+    volumes:
+      - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-core/camera/cmd/camera-server/main.go"
+  processor:
+    restart: always
+    image: lumas/lumas-processor-build-image
+    networks:
+      - "lumas"
+    ports:
+      - "5389:5389"
+      - "9000-9200:9000-9200/udp"
+    volumes:
+      - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+      - "videos:/videos"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-core/processor/cmd/server/processor-server.go"
+  stream:
+    restart: always
+    image: lumas/lumas-streamserver-build-image
+    networks:
+      - "lumas"
+    volumes:
+      - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+    entrypoint: "go run /go/src/github.com/lumas-ai/lumas-core/streamserver/cmd/stream-server/main.go"
+  #lumas-sources:
+  #  restart: always
+  #  image: lumas/lumas-sources-build-image
+  #  networks:
+  #    - "lumas"
+  #  volumes:
+  #    - "./lumas-core:/go/src/github.com/lumas-ai/lumas-core"
+  #  entrypoint: "go run /go/src/github.com/lumas-ai/lumas-core/sources/cmd/source-server/main.go"
+volumes:
+  videos:
+networks:
+  lumas:

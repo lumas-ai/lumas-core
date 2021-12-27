@@ -1,14 +1,16 @@
 FROM golang:alpine as build-stage
 
+COPY ./ ./
+
 RUN apk add --update git && \
     go get -d gocv.io/x/gocv && \
     go get github.com/lumas-ai/lumas-core/protos/golang && \
-    go get github.com/lumas-ai/lumas-core/cmd/lumasctl && \
-    go get gopkg.in/urfave/cli.v1 && \
+    GO111MODULE=on go get github.com/urfave/cli/v2 && \
+    GO111MODULE=on go get gopkg.in/yaml.v2 && \
     go get github.com/mitchellh/go-homedir && \
-    CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o /lumasctl /go/src/github.com/lumas-ai/lumas-core/cmd/lumasctl/main.go
+    CGO_ENABLED=0 GOARCH=amd64 GOOS=linux GO11MODULE=on go build -o /lumasctl ./main.go
 
-FROM alpine:3.9
+FROM scratch AS final
 
 COPY --from=build-stage /lumasctl /lumasctl
 

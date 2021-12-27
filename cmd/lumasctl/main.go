@@ -15,14 +15,14 @@ import (
 	"strings"
 	"sync"
 
-  "github.com/mitchellh/go-homedir"
 	"github.com/golang/protobuf/jsonpb"
-	cli "gopkg.in/urfave/cli.v1"
-	altsrc "gopkg.in/urfave/cli.v1/altsrc"
+  "github.com/mitchellh/go-homedir"
+  cli "github.com/urfave/cli/v2"
+  altsrc "github.com/urfave/cli/v2/altsrc"
 	"gopkg.in/yaml.v2"
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
-	api "github.com/lumas-ai/lumas-core/protos/golang"
+  api "github.com/lumas-ai/lumas-core/protos/golang/camera"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

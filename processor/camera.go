@@ -405,7 +405,7 @@ func (s *Camera) ProcessFeed() error {
   audioPort := ports[0]
   videoPort := ports[1]
 
-  rtpConfig := api.RTPConfig{ RtpAddress: "192.168.2.207",
+  rtpConfig := api.RTPConfig{ RtpAddress: "lumas-processor",
     AudioRTPPort: int32(audioPort),
     VideoRTPPort: int32(videoPort),
     CameraConfig: &c,
